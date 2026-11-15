@@ -1,0 +1,12 @@
+<script setup lang="ts">
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {UploadFilled} from '@element-plus/icons-vue'
+import type {UploadFile,UploadFiles} from 'element-plus'
+import {api,showError} from '../api'
+const open=defineModel<boolean>({required:true}),router=useRouter(),busy=ref(false),progress=ref(0),file=ref<File>(),fileList=ref<UploadFiles>([])
+function change(item:UploadFile){if(!item.raw)return;const extension=item.name.split('.').pop()?.toLowerCase();if(!extension||!['pdf','doc','docx'].includes(extension)){showError(new Error('请选择 PDF、DOC 或 DOCX 文件'));fileList.value=[];file.value=undefined;return}if(item.size!>10*1024*1024||item.size===0){showError(new Error('文件需非空且不超过 10 MB'));fileList.value=[];file.value=undefined;return}file.value=item.raw}
+async function upload(){if(!file.value)return;busy.value=true;progress.value=0;try{const extension=file.value.name.split('.').pop()!.toLowerCase();const mime:Record<string,string>={pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};const typed=new File([file.value],file.value.name,{type:mime[extension]});const detail=await api.upload(typed,v=>progress.value=v);open.value=false;fileList.value=[];file.value=undefined;await router.push(`/resumes/${detail.summary.id}`)}catch(e){showError(e)}finally{busy.value=false}}
+function closed(){file.value=undefined;fileList.value=[];progress.value=0}
+</script>
+<template><el-dialog v-model="open" title="上传你的简历" width="520px" :close-on-click-modal="!busy" :show-close="!busy" :close-on-press-escape="!busy" @closed="closed"><p class="muted dialog-intro">提取经历后，你可以逐项校对并补充真实内容。</p><el-upload v-model:file-list="fileList" drag :auto-upload="false" :limit="1" accept=".pdf,.doc,.docx" :disabled="busy" :on-change="change" :on-remove="()=>file=undefined" :on-exceed="()=>showError(new Error('请先移除当前文件再重新选择'))"><el-icon class="upload-icon"><UploadFilled/></el-icon><p>拖放简历到这里，或<span class="green">点击选择</span></p><div class="fine-print">PDF / DOC / DOCX · 最大 10 MB</div></el-upload><el-progress v-if="busy" :percentage="progress" :indeterminate="progress>=99"/><p v-if="busy" class="fine-print">正在上传与提取文本，请保持页面打开。耗时可能稍长。</p><el-alert title="扫描件也可以上传。若无法提取文字，可手动补充后确认。" type="info" :closable="false" show-icon/><template #footer><el-button :disabled="busy" @click="open=false">取消</el-button><el-button class="yellow-button" :disabled="!file" :loading="busy" @click="upload">上传并解析</el-button></template></el-dialog></template>

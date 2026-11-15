@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:ai_interview_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+app:
+  jwt-secret: test-only-signing-material-never-use-in-production-2026
+  token-ttl: PT2H
+  storage-root: ./target/test-private-files
+  max-upload-bytes: 10485760
+  allowed-extensions: pdf,doc,docx
+  max-text-chars: 200000
+springdoc:
+  api-docs:
+    enabled: true

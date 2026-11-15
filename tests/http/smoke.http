@@ -1,0 +1,92 @@
+# IDEA HTTP Client: run requests in order using the gutter play buttons.
+# Creates one test student in the configured database. The password below is test-only.
+# Repeating registration for the same account should return 409; login still works.
+@baseUrl = http://localhost:8080
+@account = dbtest01
+@password = LocalTest2026
+
+### 1. Register: expect 200 on first run, 409 on subsequent runs
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "account": "{{account}}",
+  "password": "{{password}}",
+  "nickname": "数据库测试"
+}
+
+### 2. Login: expect 200; save token in HTTP Client memory
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "account": "{{account}}",
+  "password": "{{password}}"
+}
+
+> {%
+client.test("Login succeeds", function () {
+    client.assert(response.status === 200, "Expected HTTP 200");
+    client.assert(response.body.code === "OK", "Expected OK response");
+    client.assert(!!response.body.data.accessToken, "Expected access token");
+});
+if (response.status === 200 && response.body.data.accessToken) {
+    client.global.set("smokeToken", response.body.data.accessToken);
+} else {
+    client.global.clear("smokeToken");
+}
+%}
+
+### 3. Read own profile: expect 200, STUDENT, ACTIVE
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{smokeToken}}
+
+> {%
+client.test("Profile is accessible", function () {
+    client.assert(response.status === 200, "Expected HTTP 200");
+    client.assert(response.body.data.role === "STUDENT", "Expected student role");
+    client.assert(response.body.data.status === "ACTIVE", "Expected active account");
+});
+%}
+
+### 4. Read own resumes: expect 200, initially empty
+GET {{baseUrl}}/api/resumes?page=1&size=20
+Authorization: Bearer {{smokeToken}}
+
+> {%
+client.test("Resume query succeeds", function () {
+    client.assert(response.status === 200, "Expected HTTP 200");
+    client.assert(response.body.code === "OK", "Expected OK response");
+});
+%}
+
+### 5. Student cannot access admin APIs: expect 403
+GET {{baseUrl}}/api/admin/users
+Authorization: Bearer {{smokeToken}}
+
+> {%
+client.test("Admin access denied", function () {
+    client.assert(response.status === 403, "Expected HTTP 403");
+});
+%}
+
+### 6. Log out: expect 200
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{smokeToken}}
+
+> {%
+client.test("Logout succeeds", function () {
+    client.assert(response.status === 200, "Expected HTTP 200");
+});
+%}
+
+### 7. Revoked token cannot access profile: expect 401
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{smokeToken}}
+
+> {%
+client.test("Revoked token rejected", function () {
+    client.assert(response.status === 401, "Expected HTTP 401");
+});
+client.global.clear("smokeToken");
+%}

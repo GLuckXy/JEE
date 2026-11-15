@@ -1,0 +1,13 @@
+target/
+.m2-repository/
+var/
+.idea/
+*.iml
+.env
+.env.*
+*.log
+node_modules/
+.vite/
+frontend/dist/
+frontend/test-results/
+frontend/output/
