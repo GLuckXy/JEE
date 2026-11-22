@@ -8,8 +8,17 @@ export const router=createRouter({history:createWebHashHistory(),routes:[
   {path:'/resumes',component:()=>import('./views/ResumesView.vue'),meta:{student:true}},
   {path:'/resumes/:id',component:()=>import('./views/EditorView.vue'),meta:{student:true}},
   {path:'/projects',component:()=>import('./views/ProjectsView.vue'),meta:{student:true}},
+  {path:'/demos',component:()=>import('./views/DemosView.vue'),meta:{student:true}},
+  {path:'/training',component:()=>import('./modules/training/TrainingHome.vue'),props:{mode:'NORMAL'},meta:{student:true}},
+  {path:'/training/:id',component:()=>import('./modules/training/TrainingSession.vue'),props:{mode:'NORMAL'},meta:{student:true}},
+  {path:'/practice',component:()=>import('./modules/training/TrainingHome.vue'),props:{mode:'SPECIAL'},meta:{student:true}},
+  {path:'/practice/:id',component:()=>import('./modules/training/TrainingSession.vue'),props:{mode:'SPECIAL'},meta:{student:true}},
+  {path:'/formal',component:()=>import('./modules/formal/FormalInterview.vue'),meta:{student:true}},
+  {path:'/reports',component:()=>import('./views/ReportsView.vue'),meta:{student:true}},
+  {path:'/reports/:id',component:()=>import('./views/ReportsView.vue'),meta:{student:true}},
   {path:'/profile',component:()=>import('./views/ProfileView.vue')},
   {path:'/admin/users',component:()=>import('./views/AdminView.vue'),meta:{admin:true}},
+  {path:'/admin/content',component:()=>import('./views/ContentAdminView.vue'),meta:{admin:true}},
   {path:'/:pathMatch(.*)*',redirect:'/'}
 ]})
 router.beforeEach(async to=>{const auth=useAuth();if(sessionStorage.getItem(TOKEN_KEY)&&!auth.user){try{await auth.restore()}catch{if(sessionStorage.getItem(TOKEN_KEY))return true}}if(!to.meta.public&&!sessionStorage.getItem(TOKEN_KEY))return{path:'/login',query:{redirect:to.fullPath}};if(to.meta.public&&auth.user)return auth.user.role==='ADMIN'?'/admin/users':'/resumes';if(to.meta.admin&&auth.user?.role!=='ADMIN')return'/resumes';if(to.meta.student&&auth.user?.role==='ADMIN')return'/admin/users'})

@@ -15,7 +15,7 @@ public class UserAccessService {
     }
     public CurrentUser requireStudent() {
         CurrentUser user = getCurrentUser();
-        if (!"STUDENT".equals(user.role())) throw new BusinessException(HttpStatus.FORBIDDEN, "PERMISSION_DENIED", "仅学生可操作本人简历");
+        if (!"STUDENT".equals(user.role())) throw new BusinessException(HttpStatus.FORBIDDEN, "PERMISSION_DENIED", "此功能仅对学生开放");
         return user;
     }
 }

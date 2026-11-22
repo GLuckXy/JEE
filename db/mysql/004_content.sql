@@ -1,0 +1,64 @@
+-- Apply within the unified ai_interview schema after migration 003.
+CREATE TABLE IF NOT EXISTS content_job (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ name VARCHAR(80) NOT NULL UNIQUE,
+ description VARCHAR(2000) NOT NULL,
+ requirements TEXT NOT NULL,
+ interview_focus TEXT NOT NULL,
+ enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ sort_order INT NOT NULL DEFAULT 0,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS content_category (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ job_id BIGINT NOT NULL,
+ name VARCHAR(80) NOT NULL,
+ description VARCHAR(1000) NOT NULL,
+ enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ sort_order INT NOT NULL DEFAULT 0,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CONSTRAINT uq_category_name UNIQUE(job_id,name),
+ CONSTRAINT fk_category_job FOREIGN KEY(job_id) REFERENCES content_job(id)
+);
+CREATE TABLE IF NOT EXISTS content_question (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ job_id BIGINT NOT NULL,
+ category_id BIGINT NOT NULL,
+ title VARCHAR(200) NOT NULL,
+ content TEXT NOT NULL,
+ difficulty VARCHAR(10) NOT NULL CHECK (difficulty IN ('EASY','MEDIUM','HARD')),
+ reference_points TEXT NOT NULL,
+ source_note VARCHAR(500) NOT NULL DEFAULT '',
+ enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CONSTRAINT fk_question_job FOREIGN KEY(job_id) REFERENCES content_job(id),
+ CONSTRAINT fk_question_category FOREIGN KEY(category_id) REFERENCES content_category(id)
+);
+CREATE TABLE IF NOT EXISTS content_demo (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ job_id BIGINT NOT NULL,
+ title VARCHAR(150) NOT NULL,
+ introduction VARCHAR(2000) NOT NULL,
+ source_note VARCHAR(500) NOT NULL,
+ status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT','PUBLISHED')),
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CONSTRAINT fk_demo_job FOREIGN KEY(job_id) REFERENCES content_job(id)
+);
+CREATE TABLE IF NOT EXISTS content_demo_stage (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ demo_id BIGINT NOT NULL,
+ sort_order INT NOT NULL CHECK(sort_order>0),
+ title VARCHAR(80) NOT NULL,
+ interviewer_question TEXT NOT NULL,
+ sample_answer TEXT NOT NULL,
+ follow_up TEXT NOT NULL,
+ explanation TEXT NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CONSTRAINT uq_demo_stage UNIQUE(demo_id,sort_order),
+ CONSTRAINT fk_stage_demo FOREIGN KEY(demo_id) REFERENCES content_demo(id)
+);

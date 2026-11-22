@@ -1,0 +1,60 @@
+CREATE TABLE IF NOT EXISTS training_session (
+  id VARCHAR(36) PRIMARY KEY,
+  owner_id VARCHAR(36) NOT NULL,
+  mode VARCHAR(16) NOT NULL,
+  role_id BIGINT NOT NULL,
+  question_snapshot LONGTEXT NOT NULL,
+  source_question_id BIGINT,
+  source_answer_id VARCHAR(36),
+  source_strategy VARCHAR(16),
+  position INT NOT NULL,
+  round_number INT NOT NULL,
+  state VARCHAR(16) NOT NULL,
+  phase VARCHAR(16) NOT NULL,
+  effective_ms BIGINT NOT NULL,
+  round_ms BIGINT NOT NULL,
+  paused_ms BIGINT NOT NULL,
+  asr_ms BIGINT NOT NULL,
+  evaluation_ms BIGINT NOT NULL,
+  active_at BIGINT NOT NULL,
+  heartbeat_at BIGINT NOT NULL,
+  paused_at BIGINT NOT NULL,
+  asr_at BIGINT NOT NULL,
+  asr_ticket VARCHAR(36),
+  draft TEXT NOT NULL,
+  draft_audio_id VARCHAR(36),
+  created_at BIGINT NOT NULL,
+  ended_at BIGINT NOT NULL,
+  CONSTRAINT fk_training_owner FOREIGN KEY (owner_id) REFERENCES sys_user(id),
+  INDEX ix_training_owner_ended (owner_id, ended_at)
+);
+
+CREATE TABLE IF NOT EXISTS training_answer (
+  id VARCHAR(36) PRIMARY KEY,
+  session_id VARCHAR(36) NOT NULL,
+  question_id BIGINT NOT NULL,
+  position INT NOT NULL,
+  round_number INT NOT NULL,
+  request_key VARCHAR(36) NOT NULL,
+  answer_text TEXT NOT NULL,
+  audio_id VARCHAR(36),
+  effective_ms BIGINT NOT NULL,
+  evaluation_state VARCHAR(16) NOT NULL,
+  evaluation_ticket VARCHAR(36),
+  evaluation_started_at BIGINT NOT NULL,
+  feedback_json TEXT,
+  failure_reason VARCHAR(255),
+  created_at BIGINT NOT NULL,
+  CONSTRAINT fk_training_answer_session FOREIGN KEY (session_id) REFERENCES training_session(id),
+  CONSTRAINT uk_training_answer_request UNIQUE (session_id, request_key),
+  CONSTRAINT uk_training_answer_round UNIQUE (session_id, position, round_number)
+);
+
+CREATE TABLE IF NOT EXISTS voice_asset (
+  id VARCHAR(36) PRIMARY KEY,
+  owner_id VARCHAR(36) NOT NULL,
+  media_type VARCHAR(32) NOT NULL,
+  file_extension VARCHAR(8) NOT NULL,
+  byte_count BIGINT NOT NULL,
+  CONSTRAINT fk_voice_owner FOREIGN KEY (owner_id) REFERENCES sys_user(id)
+);

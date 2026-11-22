@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { AxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { User,Page,Summary,Detail,Payload,Project,ResumeVersion,Selection } from './types'
 export const TOKEN_KEY='mianxu.session'
@@ -16,6 +17,10 @@ http.interceptors.response.use(response=>response,async(error:unknown)=>{
   return Promise.reject(failure)
 })
 async function request<T>(method:string,url:string,data?:unknown,params?:unknown):Promise<T>{const response=await http.request({method,url,data,params});return response.data.data as T}
+export async function moduleRequest<T>(method:string,url:string,data?:unknown,config?:AxiosRequestConfig):Promise<T>{
+  const response=await http.request({...config,method,url,data})
+  return (config?.responseType==='blob'?response.data:response.data.data) as T
+}
 export function showError(e:unknown){ElMessage.error(e instanceof Error?e.message:'操作失败，请重试。')}
 export const api={
   register:(data:{account:string;password:string;nickname:string})=>request<User>('POST','/auth/register',data),

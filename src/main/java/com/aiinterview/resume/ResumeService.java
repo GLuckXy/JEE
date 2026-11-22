@@ -151,6 +151,12 @@ public class ResumeService {
         if(p==null) throw BusinessException.missing("PROJECT_NOT_FOUND");
         return confirmedProject(p.resumeId,projectId);
     }
+    List<ResumeViews.Project> confirmedProjects() {
+        String owner = access.requireStudent().id();
+        var owned = resumes.selectList(new QueryWrapper<Resume>().eq("user_id", owner).isNull("deleted_at")
+                .eq("confirm_status", "CONFIRMED").orderByDesc("confirmed_at", "id"));
+        return owned.stream().flatMap(resume -> projectList(resume.id).stream()).toList();
+    }
     public ResumeViews.SelectedProject select(String id,ResumeRequests.Selection request) {
         ResumeViews.Project project=confirmedProject(id,request.projectId());
         if(project.version()!=request.version()) throw BusinessException.conflict("VERSION_CONFLICT","确认版本已变化，请重新选择");

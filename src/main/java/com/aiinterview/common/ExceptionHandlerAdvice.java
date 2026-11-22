@@ -18,6 +18,18 @@ public class ExceptionHandlerAdvice {
     private static final Logger log = LoggerFactory.getLogger(ExceptionHandlerAdvice.class);
     @ExceptionHandler(BusinessException.class)
     ResponseEntity<ApiResponse<Void>> business(BusinessException e) { return ResponseEntity.status(e.status).body(ApiResponse.error(e.code, e.getMessage())); }
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    ResponseEntity<ApiResponse<Void>> status(org.springframework.web.server.ResponseStatusException e) {
+        String code = switch (e.getStatusCode().value()) {
+            case 400 -> "INVALID_REQUEST";
+            case 404 -> "NOT_FOUND";
+            case 409 -> "STATE_CONFLICT";
+            case 413 -> "FILE_TOO_LARGE";
+            case 503 -> "VOICE_UNAVAILABLE";
+            default -> "REQUEST_FAILED";
+        };
+        return ResponseEntity.status(e.getStatusCode()).body(ApiResponse.error(code, e.getReason()));
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<Void>> validation(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()

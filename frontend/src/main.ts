@@ -6,6 +6,7 @@ import 'element-plus/dist/index.css'
 import './style.css'
 import './responsive.css'
 import './polish.css'
+import './modules/training/training.css'
 import App from './App.vue'
 import {router} from './router'
 createApp(App).use(createPinia()).use(router).use(ElementPlus,{locale:zhCn}).mount('#app')

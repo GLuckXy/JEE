@@ -4,13 +4,15 @@
   <parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>3.5.6</version><relativePath/></parent>
   <groupId>com.aiinterview</groupId><artifactId>ai-inter-backend</artifactId><version>0.1.0-SNAPSHOT</version>
   <name>AI Interview Backend</name>
-  <properties><java.version>21</java.version><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><app.jar.name>${project.artifactId}-${project.version}</app.jar.name></properties>
+  <properties><java.version>21</java.version><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><app.jar.name>${project.artifactId}-${project.version}</app.jar.name><app.build.directory>${project.basedir}/target</app.build.directory></properties>
   <dependencies>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-validation</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
     <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-oauth2-jose</artifactId></dependency>
     <dependency><groupId>com.baomidou</groupId><artifactId>mybatis-plus-spring-boot3-starter</artifactId><version>3.5.12</version></dependency>
+    <dependency><groupId>com.baomidou</groupId><artifactId>mybatis-plus-jsqlparser</artifactId><version>3.5.12</version></dependency>
+    <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>1.18.42</version><scope>provided</scope></dependency>
     <dependency><groupId>com.mysql</groupId><artifactId>mysql-connector-j</artifactId><scope>runtime</scope></dependency>
     <dependency><groupId>org.apache.pdfbox</groupId><artifactId>pdfbox</artifactId><version>3.0.5</version></dependency>
     <dependency><groupId>org.apache.poi</groupId><artifactId>poi-ooxml</artifactId><version>5.4.1</version></dependency>
@@ -20,8 +22,29 @@
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
   </dependencies>
-  <build><finalName>${app.jar.name}</finalName><plugins>
+  <build><directory>${app.build.directory}</directory><finalName>${app.jar.name}</finalName>
+    <resources>
+      <resource><directory>src/main/resources</directory></resource>
+      <resource><directory>docs</directory><targetPath>teaching</targetPath><includes><include>content-samples.json</include></includes></resource>
+    </resources>
+    <testResources>
+      <testResource><directory>src/test/resources</directory></testResource>
+      <testResource><directory>db/mysql</directory><targetPath>migrations</targetPath><includes>
+        <include>004_content.sql</include><include>005_training_voice.sql</include><include>006_formal.sql</include><include>007_report.sql</include>
+      </includes></testResource>
+    </testResources>
+    <plugins>
     <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><proc>full</proc></configuration></plugin>
     <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><configuration><argLine>-XX:+EnableDynamicAgentLoading</argLine></configuration></plugin>
   </plugins></build>
+  <profiles>
+    <profile>
+      <id>product</id>
+      <properties><app.jar.name>mianxu-product</app.jar.name><app.ui.directory>${project.basedir}/frontend/dist</app.ui.directory></properties>
+      <build><resources>
+        <resource><directory>${app.ui.directory}</directory><targetPath>static</targetPath></resource>
+      </resources></build>
+    </profile>
+  </profiles>
 </project>

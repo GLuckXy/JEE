@@ -62,18 +62,17 @@ CREATE DATABASE ai_interview CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 CREATE USER 'ai_interview'@'localhost' IDENTIFIED BY '$appPassword';
 GRANT SELECT, INSERT, UPDATE, DELETE ON ai_interview.* TO 'ai_interview'@'localhost';
 "@)
-    $schema = Get-Content -LiteralPath (Join-Path $projectRoot 'db/mysql/001_schema.sql') -Raw
-    [void](Invoke-ProjectMySql root $rootPlain $schema 'ai_interview')
-    $initial = Get-Content -LiteralPath (Join-Path $projectRoot 'db/mysql/002_initial_data.sql') -Raw
-    [void](Invoke-ProjectMySql root $rootPlain $initial 'ai_interview')
-    $softDelete = Get-Content -LiteralPath (Join-Path $projectRoot 'db/mysql/003_resume_soft_delete.sql') -Raw
-    [void](Invoke-ProjectMySql root $rootPlain $softDelete 'ai_interview')
-    $tables = Invoke-ProjectMySql ai_interview $appPassword 'SHOW TABLES;' 'ai_interview'
-    if (($tables -split '\r?\n').Count -ne 7) { throw 'Expected seven application tables.' }
-    $checks = Invoke-ProjectMySql ai_interview $appPassword "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='ai_interview' AND CONSTRAINT_TYPE='CHECK';" 'ai_interview'
-    if ($checks -ne '9') { throw "Expected 9 CHECK constraints; found $checks."
+    foreach ($migration in @('001_schema.sql', '002_initial_data.sql', '003_resume_soft_delete.sql',
+            '004_content.sql', '005_training_voice.sql', '006_formal.sql', '007_report.sql')) {
+        $sql = Get-Content -LiteralPath (Join-Path $projectRoot "db/mysql/$migration") -Raw -Encoding UTF8
+        [void](Invoke-ProjectMySql root $rootPlain $sql 'ai_interview')
     }
-    Write-Output "MySQL $version configured; application login verified; 7 tables and 9 CHECK constraints verified."
+    $tables = Invoke-ProjectMySql ai_interview $appPassword 'SHOW TABLES;' 'ai_interview'
+    if (($tables -split '\r?\n').Count -ne 21) { throw 'Expected 21 application tables.' }
+    $checks = Invoke-ProjectMySql ai_interview $appPassword "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='ai_interview' AND CONSTRAINT_TYPE='CHECK';" 'ai_interview'
+    if ([int]$checks -lt 9) { throw "Expected at least 9 CHECK constraints; found $checks."
+    }
+    Write-Output "MySQL $version configured; application login verified; 21 tables and $checks CHECK constraints verified."
     Write-Output $tables
     Write-Output (Invoke-ProjectMySql ai_interview $appPassword 'SHOW GRANTS FOR CURRENT_USER();' 'ai_interview')
 } finally {

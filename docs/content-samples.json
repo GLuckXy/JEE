@@ -1,0 +1,211 @@
+{
+  "source": "AI辅助编写的课程联调用例，非真实企业面试记录；使用前由小组审核。",
+  "jobs": [
+    {
+      "job": {
+        "name": "Java 后端",
+        "description": "面向计算机专业学生的 Java 后端面试准备。",
+        "requirements": "Java 基础、集合、SQL、HTTP 与 Spring 基础；能够说明自己真实完成的项目。",
+        "interviewFocus": "基础知识理解、数据库查询、接口设计、个人职责与问题排查。",
+        "enabled": true,
+        "sortOrder": 1
+      },
+      "categories": [
+        {
+          "name": "Java 基础",
+          "description": "基础知识理解与表达",
+          "questions": [
+            {
+              "title": "解释 equals 与 hashCode 的关系",
+              "content": "为什么重写 equals 时通常也需要重写 hashCode？请说明它与哈希集合的关系。",
+              "difficulty": "EASY",
+              "referencePoints": "相等对象必须具有相同哈希值；哈希值相同不保证相等；哈希集合先定位桶再比较；仅重写equals可能违反集合预期。"
+            },
+            {
+              "title": "说明集合选择的依据",
+              "content": "在一个需要频繁按键查询的场景中，你会如何选择集合？请说明理由与限制。",
+              "difficulty": "MEDIUM",
+              "referencePoints": "先说明访问模式；可考虑Map及哈希查询；说明键相等规则、有序性、线程安全等要求；不把平均复杂度当最坏保证。"
+            }
+          ]
+        },
+        {
+          "name": "数据库与接口",
+          "description": "应用能力与具体场景分析",
+          "questions": [
+            {
+              "title": "解释数据库索引的使用",
+              "content": "索引能加快哪些查询？为什么不能给所有字段都建索引？",
+              "difficulty": "MEDIUM",
+              "referencePoints": "结合过滤、排序等访问路径；考虑选择性、写入成本、空间成本；用执行计划验证；不能保证任意查询都变快。"
+            },
+            {
+              "title": "排查接口重复提交",
+              "content": "用户重复点击，或者在请求超时后重试，可能导致同一订单被创建两次。你会如何避免这种情况？",
+              "difficulty": "MEDIUM",
+              "referencePoints": "区分客户端防重复与服务端幂等；为同一业务操作使用稳定的幂等键；用数据库唯一约束处理并发；请求超时可查询或重试原操作。"
+            }
+          ]
+        }
+      ],
+      "demo": {
+        "title": "Java 后端 典型面试教学示范",
+        "introduction": "用于学习回答组织方式的虚构教学案例。请使用本人真实经历作答，切勿照搬案例经历。",
+        "sourceNote": "AI辅助编写的虚构教学示例，非真实招聘记录；待小组内容审核。",
+        "stages": [
+          {
+            "sortOrder": 1,
+            "title": "开场",
+            "interviewerQuestion": "我们先进行简单交流，随后讨论基础知识和项目，可以吗？",
+            "sampleAnswer": "可以，谢谢。我已准备好，会结合自己实际参与的内容回答。",
+            "followUp": "如果某个问题没有实践经验，你会怎么处理？",
+            "explanation": "确认安排，明确区分掌握的知识与尚未实践的内容。"
+          },
+          {
+            "sortOrder": 2,
+            "title": "自我介绍",
+            "interviewerQuestion": "请简要介绍自己，以及为什么选择这个岗位。",
+            "sampleAnswer": "【教学示例】我正在学习计算机相关课程，对该岗位涉及的开发过程感兴趣。接下来我会从学习基础、真实项目职责和希望提升的能力三个方面介绍。",
+            "followUp": "哪一段经历最能体现你的岗位相关能力？",
+            "explanation": "围绕岗位组织信息，避免堆砌技术名称；需要用本人经历替换。"
+          },
+          {
+            "sortOrder": 3,
+            "title": "项目介绍",
+            "interviewerQuestion": "请选择一个你实际参与的项目，说明你负责了什么。",
+            "sampleAnswer": "【教学示例】在课程练习中，我负责一个列表查询功能。我需要完成条件筛选、数据展示和异常提示；遇到的问题是空结果与失败状态混在一起，后来通过区分状态改进了交互。",
+            "followUp": "你如何验证修改有效？哪些工作由其他成员完成？",
+            "explanation": "讲清背景、个人职责、解决过程与验证方法；不虚构项目效果和数字。"
+          },
+          {
+            "sortOrder": 4,
+            "title": "技术问答",
+            "interviewerQuestion": "接口返回慢，你会从哪些环节排查？",
+            "sampleAnswer": "我会区分网络、应用处理和数据库耗时，再结合日志与查询执行情况定位；先收集证据，不直接认定数据库有问题。",
+            "followUp": "如何用实际观察支持你的判断？",
+            "explanation": "表达排查顺序与证据，避免只说某个工具名称。"
+          },
+          {
+            "sortOrder": 5,
+            "title": "追问",
+            "interviewerQuestion": "如果重新实现，你会优先改进哪一点？",
+            "sampleAnswer": "我会优先补齐异常场景验证，并把当时混在一起的处理职责拆清楚，再验证变化是否真的改善了问题。",
+            "followUp": "你的改进方案可能增加什么成本？",
+            "explanation": "说明收益与代价，避免声称所有改进都没有成本。"
+          },
+          {
+            "sortOrder": 6,
+            "title": "结束",
+            "interviewerQuestion": "今天的交流先到这里。",
+            "sampleAnswer": "谢谢您的交流，我会整理今天没有讲清楚的部分，继续完善理解和表达。",
+            "followUp": "",
+            "explanation": "礼貌收尾。实际企业的面试流程可能不同。"
+          }
+        ]
+      }
+    },
+    {
+      "job": {
+        "name": "Web 前端",
+        "description": "面向计算机专业学生的 Web 前端面试准备。",
+        "requirements": "HTML、CSS、JavaScript、HTTP、Vue 基础；能够介绍页面交互与接口联调经验。",
+        "interviewFocus": "语言基础、浏览器机制、组件通信、状态处理与用户交互。",
+        "enabled": true,
+        "sortOrder": 2
+      },
+      "categories": [
+        {
+          "name": "JavaScript 基础",
+          "description": "基础知识理解与表达",
+          "questions": [
+            {
+              "title": "解释 let 与 const 的区别",
+              "content": "let 与 const 在声明变量时有哪些共同点和区别？const 是否意味着对象内容不可变化？",
+              "difficulty": "EASY",
+              "referencePoints": "两者均有块级作用域；const 声明后不可重新赋值，但对象内部属性仍可修改；需区分绑定和对象内容。"
+            },
+            {
+              "title": "解释异步请求的状态处理",
+              "content": "页面请求数据时，你会如何处理加载中、空数据和请求失败三个状态？",
+              "difficulty": "MEDIUM",
+              "referencePoints": "区分加载、成功、空、失败状态；处理异常与重试；防止重复提交；不把失败当成空数据。"
+            }
+          ]
+        },
+        {
+          "name": "Vue 与接口联调",
+          "description": "应用能力与具体场景分析",
+          "questions": [
+            {
+              "title": "说明组件通信方式",
+              "content": "父子组件如何传递数据和通知状态变化？如何避免直接修改父组件数据？",
+              "difficulty": "MEDIUM",
+              "referencePoints": "props向下传递；事件向上通知；说明单向数据流；共享状态需根据范围合理选择。"
+            },
+            {
+              "title": "避免旧请求覆盖新搜索结果",
+              "content": "用户连续输入两个关键词，先发出的搜索请求最后返回，页面却应该显示最新关键词的结果。你会如何处理？",
+              "difficulty": "MEDIUM",
+              "referencePoints": "标记每次请求的顺序或关键词；响应回来时确认仍是最新请求；可以取消旧请求；防抖能减少请求但不能单独保证响应顺序。"
+            }
+          ]
+        }
+      ],
+      "demo": {
+        "title": "Web 前端 典型面试教学示范",
+        "introduction": "用于学习回答组织方式的虚构教学案例。请使用本人真实经历作答，切勿照搬案例经历。",
+        "sourceNote": "AI辅助编写的虚构教学示例，非真实招聘记录；待小组内容审核。",
+        "stages": [
+          {
+            "sortOrder": 1,
+            "title": "开场",
+            "interviewerQuestion": "我们先进行简单交流，随后讨论基础知识和项目，可以吗？",
+            "sampleAnswer": "可以，谢谢。我已准备好，会结合自己实际参与的内容回答。",
+            "followUp": "如果某个问题没有实践经验，你会怎么处理？",
+            "explanation": "确认安排，明确区分掌握的知识与尚未实践的内容。"
+          },
+          {
+            "sortOrder": 2,
+            "title": "自我介绍",
+            "interviewerQuestion": "请简要介绍自己，以及为什么选择这个岗位。",
+            "sampleAnswer": "【教学示例】我正在学习计算机相关课程，对该岗位涉及的开发过程感兴趣。接下来我会从学习基础、真实项目职责和希望提升的能力三个方面介绍。",
+            "followUp": "哪一段经历最能体现你的岗位相关能力？",
+            "explanation": "围绕岗位组织信息，避免堆砌技术名称；需要用本人经历替换。"
+          },
+          {
+            "sortOrder": 3,
+            "title": "项目介绍",
+            "interviewerQuestion": "请选择一个你实际参与的项目，说明你负责了什么。",
+            "sampleAnswer": "【教学示例】在课程练习中，我负责一个列表查询功能。我需要完成条件筛选、数据展示和异常提示；遇到的问题是空结果与失败状态混在一起，后来通过区分状态改进了交互。",
+            "followUp": "你如何验证修改有效？哪些工作由其他成员完成？",
+            "explanation": "讲清背景、个人职责、解决过程与验证方法；不虚构项目效果和数字。"
+          },
+          {
+            "sortOrder": 4,
+            "title": "技术问答",
+            "interviewerQuestion": "接口返回成功，但页面没有刷新，你会从哪里排查？",
+            "sampleAnswer": "我会先确认响应数据，再检查组件绑定的状态是否更新，以及是否存在异步顺序或条件渲染问题。",
+            "followUp": "如何用实际观察支持你的判断？",
+            "explanation": "表达排查顺序与证据，避免只说某个工具名称。"
+          },
+          {
+            "sortOrder": 5,
+            "title": "追问",
+            "interviewerQuestion": "如果重新实现，你会优先改进哪一点？",
+            "sampleAnswer": "我会优先补齐异常场景验证，并把当时混在一起的处理职责拆清楚，再验证变化是否真的改善了问题。",
+            "followUp": "你的改进方案可能增加什么成本？",
+            "explanation": "说明收益与代价，避免声称所有改进都没有成本。"
+          },
+          {
+            "sortOrder": 6,
+            "title": "结束",
+            "interviewerQuestion": "今天的交流先到这里。",
+            "sampleAnswer": "谢谢您的交流，我会整理今天没有讲清楚的部分，继续完善理解和表达。",
+            "followUp": "",
+            "explanation": "礼貌收尾。实际企业的面试流程可能不同。"
+          }
+        ]
+      }
+    }
+  ]
+}

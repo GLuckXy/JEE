@@ -43,3 +43,13 @@ logging:
     org.apache.pdfbox: OFF
     org.apache.fontbox: OFF
     org.apache.poi: OFF
+training:
+  audio-dir: ${TRAINING_AUDIO_DIR:${app.storage-root}/training-audio}
+  evaluation-timeout-ms: ${TRAINING_EVALUATION_TIMEOUT_MS:8000}
+  speech:
+    provider: ${TRAINING_SPEECH_PROVIDER:none}
+    isi-access-key-id: ${TRAINING_ISI_ACCESS_KEY_ID:}
+    isi-access-key-secret: ${TRAINING_ISI_ACCESS_KEY_SECRET:}
+    isi-app-key: ${TRAINING_ISI_APP_KEY:}
+    isi-region: ${TRAINING_ISI_REGION:cn-shanghai}
+    ffmpeg-path: ${TRAINING_FFMPEG_PATH:ffmpeg}

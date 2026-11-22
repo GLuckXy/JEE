@@ -4,6 +4,7 @@ import com.aiinterview.common.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,8 +38,12 @@ public class SecurityConfig {
     }
     @Bean SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter filter, ObjectMapper json) throws Exception {
         return http.csrf(c -> c.disable()).sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(c -> c.requestMatchers("/api/auth/register", "/api/auth/login", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+                .authorizeHttpRequests(c -> c.requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.svg", "/assets/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/", "/index.html", "/favicon.svg", "/assets/**").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/training/**", "/api/voice/**", "/api/formal-interviews", "/api/formal-interviews/**", "/api/reports/**").hasRole("STUDENT")
+                        .anyRequest().authenticated())
                 .exceptionHandling(c -> c.authenticationEntryPoint((req,res,e) -> {
                     res.setStatus(401); res.setContentType(MediaType.APPLICATION_JSON_VALUE); res.setCharacterEncoding("UTF-8");
                     json.writeValue(res.getWriter(), ApiResponse.error("AUTH_REQUIRED", "请先登录"));

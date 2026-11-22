@@ -1,5 +1,6 @@
 package com.aiinterview.resume;
 
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,4 +12,6 @@ public class ResumeQueryService {
     public ResumeQueryService(ResumeService resumes) { this.resumes=resumes; }
     public ResumeViews.Version getConfirmedResume(String resumeId) { return resumes.confirmedResume(resumeId); }
     public ResumeViews.Project getConfirmedProject(String resumeId,String projectId) { return resumes.confirmedProject(resumeId,projectId); }
+    public ResumeViews.Project getConfirmedProject(String projectId) { return resumes.projectDetail(projectId); }
+    public List<ResumeViews.Project> listConfirmedProjects() { return resumes.confirmedProjects(); }
 }
