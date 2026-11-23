@@ -4,21 +4,25 @@
 
 ## 启动
 
-需要 Node.js 20.19+ 或 22.12+，推荐 Node.js 24。先启动现有 Spring Boot 后端（默认 8080），再执行：
+需要 Node.js 20.19+ 或 22.12+，推荐 Node.js 24。首次检出项目或更新锁文件后，在仓库根目录安装依赖：
 
 ```powershell
-cd frontend
-npm ci
-npm run dev
+npm.cmd --prefix frontend ci
 ```
 
-访问 `http://127.0.0.1:5173/`，注册学生账户后即可使用。后端启动方式见[本地验收与团队联调](../docs/team-test.md)。
+依赖安装到 `frontend/node_modules`。启动 Spring Boot 后端（默认 8080），再运行 IDEA 的 **Mianxu Vite**，或从仓库根目录执行：
+
+```powershell
+npm.cmd --prefix frontend run dev
+```
+
+访问 `http://127.0.0.1:5173/`，注册学生账户后即可使用。后端启动方式见[本机启动与验收](../docs/team-test.md)。
 
 开发服务器 `/api` 请求代理到 `http://127.0.0.1:8080`，所以不需要修改后端 CORS。若后端端口不同，在当前终端设置后执行启动命令：
 
 ```powershell
 $env:API_TARGET = 'http://127.0.0.1:8081'
-npm run dev
+npm.cmd --prefix frontend run dev
 ```
 
 不创建或修改 `.env`。密钥和数据库凭证均由后端处理，不进入前端。

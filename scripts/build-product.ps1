@@ -10,7 +10,7 @@ $assets = Join-Path $work 'ui'
 $build = Join-Path $work 'maven'
 $frontend = Join-Path $projectRoot 'frontend'
 if (-not (Test-Path -LiteralPath (Join-Path $frontend 'node_modules/vite/bin/vite.js'))) {
-    throw 'Install the frontend project dependencies before building the release.'
+    throw 'Run npm.cmd --prefix frontend ci from the repository root before building the release.'
 }
 Push-Location -LiteralPath $frontend
 try {
@@ -30,7 +30,7 @@ try {
     $jar = Join-Path $build 'mianxu-product.jar'
     $archive = [IO.Compression.ZipFile]::OpenRead($jar)
     try {
-        foreach ($entry in @('static/index.html', 'static/favicon.svg', 'application.yml', 'application-team-test.yml', 'teaching/content-samples.json',
+        foreach ($entry in @('static/index.html', 'static/favicon.svg', 'application.yml', 'teaching/content-samples.json',
                 'schema-h2.sql', 'migrations/007_report.sql')) {
             if (-not $archive.GetEntry("BOOT-INF/classes/$entry")) { throw "Release is missing $entry." }
         }

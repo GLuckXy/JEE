@@ -1,6 +1,6 @@
 # 整合运行与验收
 
-本地一键验收和共享 MySQL 联调见[团队联调指南](team-test.md)。
+本机 H2 验收和 MySQL 启动步骤见[本机启动与验收](team-test.md)。
 
 ## 数据库与首次演示
 
@@ -10,7 +10,7 @@
 
 ## 可选外部服务
 
-团队联调通过本机 `backend/config/team-test/application.yml` 提供配置。其他运行模式可使用下列环境变量。
+本机 MySQL 运行时可在 `backend/config/local/application.yml` 配置外部服务，也可以使用下列环境变量。
 
 | 环境变量 | 用途 |
 | --- | --- |
@@ -43,7 +43,7 @@ JSON 接口沿用 `code`、`message`、`data`。音频和其他私有文件以 B
 mvn -f backend/pom.xml test
 ```
 
-后端跨模块回归使用 H2 和测试替身验证限时、转写重试、录音保留、项目追问、报告与权限。若要在预先迁移好的独立 MySQL 库复跑，向测试进程提供 `VERIFY_PLATFORM_MYSQL_URL`、`VERIFY_PLATFORM_MYSQL_USER`、`VERIFY_PLATFORM_MYSQL_PASSWORD`，指定本机 `ai_interview_integration_test`，再运行 `mvn -f backend/pom.xml -Dtest=PlatformIntegrationTest test`。
+后端跨模块回归使用 H2 和测试替身验证限时、转写重试、录音保留、项目追问、报告与权限。也可向测试进程提供 `VERIFY_PLATFORM_MYSQL_URL`、`VERIFY_PLATFORM_MYSQL_USER`、`VERIFY_PLATFORM_MYSQL_PASSWORD`，再运行 `mvn -f backend/pom.xml -Dtest=PlatformIntegrationTest test`。这组测试会写入验收数据，URL 应指向本机已迁移的独立库，库名由 URL 指定。
 
 已安装前端项目依赖和 Microsoft Edge 时，从项目根目录运行下面的浏览器验收。它启动独立 H2 后端和 Vite，测试管理员导入和发布、学生注册、训练、反馈、报告、复练及权限；不修改现有数据库。
 

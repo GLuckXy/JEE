@@ -1,6 +1,5 @@
 package com.aiinterview.formal.config;
 
-import com.aiinterview.config.AppProperties;
 import com.aiinterview.formal.integration.DeepSeekClient;
 import com.aiinterview.formal.persistence.SqlInterviewStore;
 import com.aiinterview.formal.service.InterviewCatalog;
@@ -20,7 +19,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 public class FormalInterviewModule {
@@ -41,11 +39,9 @@ public class FormalInterviewModule {
     @Bean
     InterviewService formalInterviewService(DataSource dataSource, ObjectMapper json, InterviewCatalog catalog,
                                             SpeechTranscriber speech, ProjectDeepDive projects,
-                                            ObjectProvider<Clock> clock, ApplicationEventPublisher events,
-                                            Environment environment, AppProperties app) {
-        var localAudio = environment.matchesProfiles("team-test") ? app.storageRoot().resolve("formal-audio") : null;
+                                            ObjectProvider<Clock> clock, ApplicationEventPublisher events) {
         return new InterviewService(new SqlInterviewStore(dataSource, json,
-                (owner, id) -> events.publishEvent(new SessionCompleted(owner, id.toString())), localAudio), catalog, speech, projects,
+                (owner, id) -> events.publishEvent(new SessionCompleted(owner, id.toString())), null), catalog, speech, projects,
                 clock.getIfAvailable(Clock::systemUTC));
     }
 }

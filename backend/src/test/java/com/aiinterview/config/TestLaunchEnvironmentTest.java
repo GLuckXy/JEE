@@ -35,53 +35,11 @@ class TestLaunchEnvironmentTest {
     }
 
     @Test
-    void testLaunchCannotBeCombinedWithAnotherProfile() {
+    void demoCannotBeCombinedWithAnotherProfile() {
         var environment = new MockEnvironment();
-        environment.setActiveProfiles("demo", "team-test");
+        environment.setActiveProfiles("demo", "test");
         assertThatThrownBy(() -> new TestLaunchEnvironment().postProcessEnvironment(environment, new SpringApplication()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("only one Spring profile");
-    }
-
-    @Test
-    void teamTestUsesExternalPropertiesAndKeepsMysqlInitializationDisabled() {
-        var environment = teamTest()
-                .withProperty("spring.sql.init.mode", "always")
-                .withProperty("interview.ai.url", "https://example.invalid/");
-        new TestLaunchEnvironment().postProcessEnvironment(environment, new SpringApplication());
-
-        assertThat(environment.getProperty("spring.datasource.url"))
-                .isEqualTo("jdbc:mysql://localhost/mianxu_test?sslMode=VERIFY_IDENTITY&connectionTimeZone=UTC");
-        assertThat(environment.getProperty("spring.datasource.password")).isEqualTo("synthetic-db-password");
-        assertThat(environment.getProperty("spring.sql.init.mode")).isEqualTo("never");
-        assertThat(environment.getProperty("training.speech.provider")).isEqualTo("isi");
-        assertThat(environment.getProperty("interview.ai.url")).isEqualTo("https://api.deepseek.com/chat/completions");
-    }
-
-    @Test
-    void teamTestReportsTheMissingFieldAndRejectsAnUnverifiedDatabaseUrl() {
-        var processor = new TestLaunchEnvironment();
-        assertThatThrownBy(() -> processor.postProcessEnvironment(
-                teamTest().withProperty("interview.ai.key", ""), new SpringApplication()))
-                .hasMessageContaining("interview.ai.key")
-                .hasMessageNotContaining("synthetic-db-password");
-        assertThatThrownBy(() -> processor.postProcessEnvironment(
-                teamTest().withProperty("spring.datasource.url", "jdbc:mysql://localhost/mianxu_test?sslMode=REQUIRED"),
-                new SpringApplication()))
-                .hasMessageContaining("spring.datasource.url");
-    }
-
-    private static MockEnvironment teamTest() {
-        var environment = new MockEnvironment()
-                .withProperty("spring.datasource.url", "jdbc:mysql://localhost/mianxu_test?sslMode=VERIFY_IDENTITY")
-                .withProperty("spring.datasource.username", "synthetic-user")
-                .withProperty("spring.datasource.password", "synthetic-db-password")
-                .withProperty("app.jwt-secret", "synthetic-signing-material-for-unit-test")
-                .withProperty("training.speech.isi-access-key-id", "synthetic-access-id")
-                .withProperty("training.speech.isi-access-key-secret", "synthetic-access-secret")
-                .withProperty("training.speech.isi-app-key", "synthetic-app-key")
-                .withProperty("interview.ai.key", "synthetic-ai-key");
-        environment.setActiveProfiles("team-test");
-        return environment;
     }
 }

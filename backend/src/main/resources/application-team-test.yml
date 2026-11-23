@@ -1,9 +1,0 @@
-spring:
-  config:
-    import: file:./backend/config/team-test/application.yml
-  datasource:
-    url: ''
-    username: ''
-    password: ''
-app:
-  jwt-secret: ''

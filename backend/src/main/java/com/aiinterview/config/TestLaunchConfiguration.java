@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 @Configuration(proxyBeanMethods = false)
-@Profile({"demo", "team-test"})
+@Profile("demo")
 class TestLaunchConfiguration {
     @Bean(destroyMethod = "close")
     HikariDataSource testLaunchDataSource(ConfigurableEnvironment environment) {
-        // Use only the selected mode's JDBC settings, even if Hikari environment overrides exist.
+        // Use the demo JDBC settings, even if Hikari environment overrides exist.
         var settings = environment.getPropertySources().get(TestLaunchEnvironment.PROPERTY_SOURCE);
         var config = new HikariConfig();
         config.setJdbcUrl((String) settings.getProperty("spring.datasource.url"));
@@ -25,7 +25,6 @@ class TestLaunchConfiguration {
     }
 
     @Bean
-    @Profile("demo")
     ApplicationRunner demoTeachingContent(TeachingContentService teachingContent) {
         return args -> teachingContent.install();
     }

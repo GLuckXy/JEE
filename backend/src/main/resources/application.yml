@@ -57,5 +57,5 @@ training:
 spring:
   config:
     activate:
-      on-profile: '!demo & !team-test & !test'
+      on-profile: '!demo & !test'
     import: optional:file:./backend/config/local/application.yml

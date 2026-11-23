@@ -62,8 +62,8 @@ class PlatformIntegrationTest {
             properties.add("spring.datasource.url", () -> "jdbc:h2:mem:platform_integration_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE");
             return;
         }
-        if (!url.matches("jdbc:mysql://(?:localhost|127\\.0\\.0\\.1)(?::[0-9]+)?/ai_interview_integration_test(?:\\?.*)?"))
-            throw new IllegalArgumentException("MySQL verification must use a local ai_interview_integration_test database");
+        if (!url.matches("jdbc:mysql://(?:localhost|127\\.0\\.0\\.1)(?::[0-9]+)?/[^/\\s?#]+(?:\\?.*)?"))
+            throw new IllegalArgumentException("MySQL verification must use a database on localhost or 127.0.0.1");
         properties.add("spring.datasource.url", () -> url);
         properties.add("spring.datasource.username", () -> System.getenv("VERIFY_PLATFORM_MYSQL_USER"));
         properties.add("spring.datasource.password", () -> System.getenv().getOrDefault("VERIFY_PLATFORM_MYSQL_PASSWORD", ""));

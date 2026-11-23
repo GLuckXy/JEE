@@ -4,26 +4,32 @@
 
 使用 Spring Boot 3.5、Spring Security、MyBatis-Plus 3.5.12、MySQL 8、PDFBox 和 Apache POI，Java 源码目标版本为 21；前端使用 Vue 3、Element Plus 和 Axios。
 
-## 测试人员快速启动
+## 本机快速启动
 
-在 Windows 上准备 JDK 21+、Maven 3.9、PowerShell 7 和 Node.js 20.19+ 或 22.12+，从仓库根目录运行：
+在 Windows 上准备 JDK 21+、Maven 3.9、PowerShell 7 和 Node.js 20.19+ 或 22.12+。首次检出项目后，在仓库根目录安装前端依赖：
+
+```powershell
+npm.cmd --prefix frontend ci
+```
+
+然后运行本机验收脚本：
 
 ```powershell
 pwsh -NoProfile -File scripts/start-test.ps1
 ```
 
-打开 `http://127.0.0.1:8080/`，注册测试账号后可上传简历、做文字训练、查看报告和复练。本地验收使用进程内 H2 和内置题库。需要团队共享 MySQL、阿里云语音和 DeepSeek 时，复制模板并填写团队渠道收到的凭据，再以 `-Mode TeamTest` 启动。 [团队联调与 IDEA 指南](docs/team-test.md)
+打开 `http://127.0.0.1:8080/`，注册测试账号后可上传简历、做文字训练、查看报告和复练。本机验收使用内存 H2 和内置题库。使用 MySQL 时，按[本机数据库配置](#windows-本机数据库配置)填写凭据。 [本机启动与验收](docs/team-test.md)
 
 ## 初版发布包
 
-在本机准备 JDK 21+、Maven 3.9、PowerShell 7 和 Node.js 20.19+ 或 22.12+。新检出且未安装前端依赖时运行 `npm ci --prefix frontend`，再执行：
+在本机准备 JDK 21+、Maven 3.9、PowerShell 7 和 Node.js 20.19+ 或 22.12+。首次构建前在仓库根目录运行 `npm.cmd --prefix frontend ci`，再执行：
 
 ```powershell
 pwsh -NoProfile -File scripts/build-product.ps1
 pwsh -NoProfile -File scripts/start-local.ps1 -Product
 ```
 
-发布包为 `backend/target/mianxu-product.jar`。启动脚本监听 `127.0.0.1`，从 `backend/config/local/application.yml` 或启动环境加载已迁移 MySQL 的业务凭据。录入团队配置的步骤见[团队联调与 IDEA 指南](docs/team-test.md)。
+发布包为 `backend/target/mianxu-product.jar`。启动脚本监听 `127.0.0.1`，从 `backend/config/local/application.yml` 或启动环境加载已迁移的 MySQL 数据库凭据。
 
 打开 `http://127.0.0.1:8080/`，管理员进入「内容与评价规则 → 岗位 → 导入测试题库」。请求会新增带「测试」标记的 2 个岗位、4 个分类、8 道题和 2 份示范草稿；测试题可立即作答，示范在「典型示范」页审核后发布。同名测试岗位跳过，管理员可停用测试岗位。学生注册后在「普通训练」选择测试岗位，结束后前往「报告与历史」，在逐题回顾中试用「练习同类题」。服务不会在启动时导入数据。
 
@@ -38,7 +44,7 @@ pwsh -NoProfile -File scripts/start-local.ps1 -Product
 | `backend/src/main/java/com/aiinterview/` | 统一包名下的认证、用户、简历、题库、训练、语音、正式模拟和报告 |
 | `backend/src/main/resources/` | Spring Boot 配置、H2 结构和教学样例 |
 | `backend/src/test/`、`backend/tests/http/` | 后端自动化测试和 IDEA HTTP 冒烟用例 |
-| `backend/config/` | 本机与团队配置模板，以及 Git 忽略的本机配置位置 |
+| `backend/config/` | 本机配置模板及 Git 忽略的本机配置位置 |
 | `frontend/src/` | Vue 页面、公共组件、路由、认证状态与接口封装 |
 | `frontend/tests/` | 合并规则测试、模拟接口浏览器测试及真实后端联调脚本 |
 | `backend/db/mysql/`、`backend/scripts/` | MySQL 迁移及后端工具 |
@@ -49,7 +55,7 @@ pwsh -NoProfile -File scripts/start-local.ps1 -Product
 
 需要 JDK 21 或更新版本、Maven 3.9、MySQL 8.0.16 或更新版本。建议团队统一使用 JDK 21 LTS。
 
-1. 由数据库负责人创建空数据库 `ai_interview` 及独立应用账号。
+1. 由数据库负责人创建空数据库及独立应用账号。库名通过 JDBC URL 指定，默认示例为 `ai_interview`。
 2. **获得数据库负责人确认后**，空库按顺序执行 `backend/db/mysql/001`–`007`。已有用户与简历数据的库先确认 `001`–`003` 已部署，再执行尚未应用的迁移。MySQL 模式启动时跳过迁移和教学样例初始化。
 3. 将 `backend/config/local/application.example.yml` 复制为同目录的 `application.yml` 并填写凭据。也可以通过运行进程环境提供以下配置。
 
@@ -98,7 +104,10 @@ pwsh -NoProfile -File backend/scripts/upgrade-existing-database.ps1 -Apply
 
 ### IDEA 运行与调试
 
-在 IDEA 打开仓库根目录，导入 `backend/pom.xml`。通过 `Mianxu Demo` 或 `Mianxu Team Test` 运行或调试后端，再用 `Mianxu Vite` 启动前端。 [详细步骤](docs/team-test.md)
+1. 在 IDEA 打开仓库根目录，右键 `backend/pom.xml`，选择 **Add as Maven Project**。
+2. 在仓库根目录执行 `npm.cmd --prefix frontend ci`，按锁文件安装到 `frontend/node_modules`。首次检出或锁文件更新后执行这一步。
+3. 后端可运行 **Mianxu Demo** 使用内存 H2，也可从仓库根目录直接运行 `InterviewApplication.main()`，读取 `backend/config/local/application.yml` 连接本机 MySQL。
+4. 启动 **Mianxu Vite**，或在仓库根目录执行 `npm.cmd --prefix frontend run dev`。打开 `http://127.0.0.1:5173/`。 [详细步骤](docs/team-test.md#idea-与-http-冒烟测试)
 
 ## 管理员初始化
 
