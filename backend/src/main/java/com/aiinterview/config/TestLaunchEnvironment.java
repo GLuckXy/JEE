@@ -7,6 +7,7 @@ import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.boot.env.EnvironmentPostProcessor;
@@ -16,6 +17,8 @@ import org.springframework.core.env.MapPropertySource;
 
 public final class TestLaunchEnvironment implements EnvironmentPostProcessor, Ordered {
     static final String PROPERTY_SOURCE = "localTestLaunch";
+    private static final Pattern LOCAL_TEST_JDBC = Pattern.compile(
+            "jdbc:mysql://127\\.0\\.0\\.1(?::([0-9]{1,5}))?/[a-z][a-z0-9_]{0,58}_test");
 
     @Override
     public int getOrder() {
@@ -75,8 +78,13 @@ public final class TestLaunchEnvironment implements EnvironmentPostProcessor, Or
 
     private static void applyTeamTestSettings(ConfigurableEnvironment environment, Map<String, Object> settings) {
         String url = required(environment, "spring.datasource.url");
-        if (!url.matches("jdbc:mysql://[a-zA-Z0-9.-]+(?::[0-9]{1,5})?/[a-z][a-z0-9_]{0,58}_test\\?sslMode=VERIFY_IDENTITY")) {
-            throw invalid("spring.datasource.url", "use the test database URL format from the example");
+        var localUrl = LOCAL_TEST_JDBC.matcher(url);
+        if (!localUrl.matches()) {
+            throw invalid("spring.datasource.url", "use jdbc:mysql://127.0.0.1:3306/<database>_test");
+        }
+        if (localUrl.group(1) != null) {
+            int port = Integer.parseInt(localUrl.group(1));
+            if (port < 1 || port > 65535) throw invalid("spring.datasource.url", "invalid local MySQL port");
         }
         String username = required(environment, "spring.datasource.username");
         if ("root".equalsIgnoreCase(username)) throw invalid("spring.datasource.username", "use a test account");
@@ -84,7 +92,7 @@ public final class TestLaunchEnvironment implements EnvironmentPostProcessor, Or
         if (jwt.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw invalid("app.jwt-secret", "at least 32 UTF-8 bytes are required");
         }
-        settings.put("spring.datasource.url", url + "&connectionTimeZone=UTC");
+        settings.put("spring.datasource.url", url + "?connectionTimeZone=UTC");
         settings.put("spring.datasource.username", username);
         settings.put("spring.datasource.password", required(environment, "spring.datasource.password"));
         settings.put("app.jwt-secret", jwt);

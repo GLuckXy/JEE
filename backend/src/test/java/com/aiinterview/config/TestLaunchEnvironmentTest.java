@@ -1,6 +1,8 @@
 package com.aiinterview.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.SpringApplication;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -51,7 +53,7 @@ class TestLaunchEnvironmentTest {
         new TestLaunchEnvironment().postProcessEnvironment(environment, new SpringApplication());
 
         assertThat(environment.getProperty("spring.datasource.url"))
-                .isEqualTo("jdbc:mysql://localhost/mianxu_test?sslMode=VERIFY_IDENTITY&connectionTimeZone=UTC");
+                .isEqualTo("jdbc:mysql://127.0.0.1:3307/mianxu_test?connectionTimeZone=UTC");
         assertThat(environment.getProperty("spring.datasource.password")).isEqualTo("synthetic-db-password");
         assertThat(environment.getProperty("spring.sql.init.mode")).isEqualTo("never");
         assertThat(environment.getProperty("training.speech.provider")).isEqualTo("isi");
@@ -59,21 +61,32 @@ class TestLaunchEnvironmentTest {
     }
 
     @Test
-    void teamTestReportsTheMissingFieldAndRejectsAnUnverifiedDatabaseUrl() {
+    void teamTestReportsTheMissingFieldWithoutPrintingCredentials() {
         var processor = new TestLaunchEnvironment();
         assertThatThrownBy(() -> processor.postProcessEnvironment(
                 teamTest().withProperty("interview.ai.key", ""), new SpringApplication()))
                 .hasMessageContaining("interview.ai.key")
                 .hasMessageNotContaining("synthetic-db-password");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "jdbc:mysql://mysql.example.invalid:3306/mianxu_test",
+            "jdbc:mysql://127.0.0.1:3306/ai_interview",
+            "jdbc:mysql://127.0.0.1:65536/mianxu_test",
+            "jdbc:mysql://127.0.0.1:3306/mianxu_test?socketFactory=example.Factory"
+    })
+    void teamTestRejectsUrlsOutsideTheLocalTestDatabaseFormat(String url) {
+        var processor = new TestLaunchEnvironment();
         assertThatThrownBy(() -> processor.postProcessEnvironment(
-                teamTest().withProperty("spring.datasource.url", "jdbc:mysql://localhost/mianxu_test?sslMode=REQUIRED"),
+                teamTest().withProperty("spring.datasource.url", url),
                 new SpringApplication()))
                 .hasMessageContaining("spring.datasource.url");
     }
 
     private static MockEnvironment teamTest() {
         var environment = new MockEnvironment()
-                .withProperty("spring.datasource.url", "jdbc:mysql://localhost/mianxu_test?sslMode=VERIFY_IDENTITY")
+                .withProperty("spring.datasource.url", "jdbc:mysql://127.0.0.1:3307/mianxu_test")
                 .withProperty("spring.datasource.username", "synthetic-user")
                 .withProperty("spring.datasource.password", "synthetic-db-password")
                 .withProperty("app.jwt-secret", "synthetic-signing-material-for-unit-test")

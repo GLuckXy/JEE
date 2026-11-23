@@ -12,7 +12,7 @@
 pwsh -NoProfile -File scripts/start-test.ps1
 ```
 
-打开 `http://127.0.0.1:8080/`，注册测试账号后可上传简历、做文字训练、查看报告和复练。本地验收使用进程内 H2 和内置题库。需要团队共享 MySQL、阿里云语音和 DeepSeek 时，复制模板并填写团队渠道收到的凭据，再以 `-Mode TeamTest` 启动。 [团队联调与 IDEA 指南](docs/team-test.md)
+打开 `http://127.0.0.1:8080/`，注册测试账号后可上传简历、做文字训练、查看报告和复练。本地验收使用进程内 H2 和内置题库。需要用 MySQL 测试阿里云语音和 DeepSeek 时，先把测试数据库复制到本机，再从模板填写本机数据库和云服务凭据，最后以 `-Mode TeamTest` 启动。 [团队联调与 IDEA 指南](docs/team-test.md)
 
 ## 初版发布包
 
