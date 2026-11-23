@@ -232,6 +232,9 @@ onUnmounted(() => {
         show-icon
       />
       <ElAlert v-if="options && !options.modelReady" type="warning" title="项目提问服务尚未配置" :closable="false" show-icon />
+      <p v-if="options && (!options.asrReady || !options.modelReady)" class="muted">
+        本地验收人员请切换到真实联调模式后体验正式模拟。
+      </p>
       <div class="choices">
         <label>目标岗位
           <ElSelect v-model="roleId" aria-label="目标岗位" placeholder="选择目标岗位">

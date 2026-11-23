@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: 'jdbc:mysql://mysql.example.invalid:3306/ai_interview_integration_test?sslMode=VERIFY_IDENTITY'
+    username: ''
+    password: ''
+app:
+  jwt-secret: ''
+training:
+  speech:
+    isi-access-key-id: ''
+    isi-access-key-secret: ''
+    isi-app-key: ''
+    isi-region: 'cn-shanghai'
+    ffmpeg-path: 'ffmpeg'
+interview:
+  ai:
+    key: ''
+    model: 'deepseek-chat'

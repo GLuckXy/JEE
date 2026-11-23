@@ -1,0 +1,8 @@
+package com.aiinterview.content.mapper;
+
+import com.aiinterview.content.entity.DemoStage;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface DemoStageMapper extends BaseMapper<DemoStage> {}

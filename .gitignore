@@ -1,6 +1,11 @@
 target/
 .m2-repository/
 var/
+*.dpapi
+*.mianxu-test.age
+http-client.private.env.json
+/backend/config/local/application.yml
+/backend/config/team-test/application.yml
 .idea/
 *.iml
 .env

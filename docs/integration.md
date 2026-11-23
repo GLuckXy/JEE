@@ -1,14 +1,16 @@
 # 整合运行与验收
 
+本地一键验收和共享 MySQL 联调见[团队联调指南](team-test.md)。
+
 ## 数据库与首次演示
 
-- 新库按顺序执行 `db/mysql/001_schema.sql` 至 `007_report.sql`。已有基础表的库先确认 `003_resume_soft_delete.sql` 已执行；之后只执行 `004`–`007`。数据库默认字符集和排序规则使用 `utf8mb4` / `utf8mb4_0900_ai_ci`，与 `001` 中用户主键的外键规则一致。严禁执行来源模块的独立建库脚本，也不要把独立演示账号或旧报告表导入现有库。
-- 首次启动不会自动导入题库。管理员可在 `#/admin/content` 创建自己的内容，或显式确认导入[教学样例](content-samples.json)。导入只新增带「测试」标记的岗位，启用其分类和题目，示范保留草稿；遇到同名岗位跳过，不修补或覆盖已有记录。这套测试题每个分类都有两道题，可验证同类复练。评价规则不配置时使用默认五维权重；管理员可按训练模式发布规则，新规则只作用于之后生成的报告。
+- 新库按顺序执行 `backend/db/mysql/001_schema.sql` 至 `007_report.sql`。已有基础表的库先确认 `003_resume_soft_delete.sql` 已执行，再执行尚未应用的迁移。数据库默认字符集和排序规则使用 `utf8mb4` / `utf8mb4_0900_ai_ci`，与 `001` 中用户主键的外键规则一致。
+- 本地 H2 验收自动导入题库。MySQL 模式由管理员在 `#/admin/content` 创建内容或导入[教学样例](../backend/src/main/resources/teaching/content-samples.json)。导入新增带「测试」标记的岗位，启用其分类和题目，示范保留草稿。同名岗位跳过。这套测试题每个分类有两道题，可验证同类复练。评价规则默认使用五维权重。管理员可按训练模式发布规则，新规则作用于之后生成的报告。
 - 学生使用同一个入口登录：先在 `#/demos` 观看示范，在 `#/training` 选题、作答并结束，然后从 `#/reports` 查看报告和发起专项复练。在 `#/resumes` 确认本人的简历项目后可进入 `#/formal`。正式模拟只接受录音，不提供文字替代；每次提交的首份录音不会被覆盖。
 
 ## 可选外部服务
 
-只通过服务进程的环境提供配置，不把实际密钥放进仓库、聊天或前端。
+团队联调通过本机 `backend/config/team-test/application.yml` 提供配置。其他运行模式可使用下列环境变量。
 
 | 环境变量 | 用途 |
 | --- | --- |
@@ -38,16 +40,16 @@ JSON 接口沿用 `code`、`message`、`data`。音频和其他私有文件以 B
 ## 回归命令
 
 ```powershell
-mvn test
+mvn -f backend/pom.xml test
 ```
 
-后端跨模块回归使用 H2；它以测试替身验证语音转写和项目提问，包括限时、转写重试、录音保留、项目追问、报告与权限。若要在预先迁移好的独立 MySQL 库复跑，向测试进程提供 `VERIFY_PLATFORM_MYSQL_URL`、`VERIFY_PLATFORM_MYSQL_USER`、`VERIFY_PLATFORM_MYSQL_PASSWORD`，指定本机 `ai_interview_integration_test`，再运行 `mvn -Dtest=PlatformIntegrationTest test`。不要在已有业务库运行。
+后端跨模块回归使用 H2 和测试替身验证限时、转写重试、录音保留、项目追问、报告与权限。若要在预先迁移好的独立 MySQL 库复跑，向测试进程提供 `VERIFY_PLATFORM_MYSQL_URL`、`VERIFY_PLATFORM_MYSQL_USER`、`VERIFY_PLATFORM_MYSQL_PASSWORD`，指定本机 `ai_interview_integration_test`，再运行 `mvn -f backend/pom.xml -Dtest=PlatformIntegrationTest test`。
 
 已安装前端项目依赖和 Microsoft Edge 时，从项目根目录运行下面的浏览器验收。它启动独立 H2 后端和 Vite，测试管理员导入和发布、学生注册、训练、反馈、报告、复练及权限；不修改现有数据库。
 
 ```powershell
 $env:VERIFY_PLATFORM_BROWSER = 'true'
-mvn -Dtest=PlatformBrowserVerificationTest test
+mvn -f backend/pom.xml -Dtest=PlatformBrowserVerificationTest test
 ```
 
 实际阿里云与 DeepSeek 需要在已配置的环境单独联调。自动化测试和本机隔离数据库验收不代表已验证真实云端服务。
@@ -61,5 +63,5 @@ mvn -Dtest=PlatformBrowserVerificationTest test
 ## 初版发布验收
 
 - 已对本机现有 `ai_interview` 核对 `003` 并续跑 `004`–`007`；迁移前保存基础表结构，新增 14 张表，未写入原有业务表。测试数据未写入该库。
-- `scripts/build-product.ps1` 产出 `target/mianxu-product.jar`：52 项后端测试通过、6 项可选测试在默认构建中跳过；前端生产构建与 5 项单测通过。
+- 发布包现位于 `backend/target/mianxu-product.jar`。初版发布时 52 项后端测试、前端生产构建及 5 项前端单测通过，6 项可选测试跳过。
 - 发布 JAR 在独立 MySQL 8.0.36 的 `ai_interview_integration_test` 通过单地址浏览器回归：管理员导入测试题库、重复导入不新增、发布示范、学生注册与训练、暂停恢复、报告、同类复练和权限校验。实际阿里云与 DeepSeek 仍需单独配置和验收。

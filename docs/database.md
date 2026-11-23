@@ -4,11 +4,11 @@
 
 ## 脚本
 
-`db/mysql/001_schema.sql` 创建七张表、唯一约束、外键、CHECK 与查询索引。仅面向空 schema，不包含 DROP、默认账号或自动迁移。重复执行会报表已存在，避免静默覆盖其他开发者结构。`002_initial_data.sql` 说明初始化策略；枚举使用约束，管理员通过显式引导创建。
+`backend/db/mysql/001_schema.sql` 创建七张表、唯一约束、外键、CHECK 与查询索引，仅面向空 schema。重复执行会报表已存在。`002_initial_data.sql` 说明初始化策略。管理员通过显式引导创建。
 
 `003_resume_soft_delete.sql` 为 resume 添加可空 `deleted_at` 和本人有效简历列表索引。已有数据库只应用 003；空库依次应用 001/002/003。执行需要 ALTER/INDEX 权限，应用业务账号没有此权限。迁移不删除记录或原文件；执行后再启动新版后端。该脚本只执行一次，部分失败时先检查字段和索引状态，不直接重跑。
 
-应用配置 `spring.sql.init.mode=never`，应用启动不会自动修改数据库结构。`src/test/resources/schema-h2.sql` 使用相同字段、约束与索引，仅将 MySQL 表选项及 LONGTEXT 转换为 H2 兼容形式。
+MySQL 模式配置 `spring.sql.init.mode=never`。`backend/src/main/resources/schema-h2.sql` 用于 H2 测试与本地验收，使用兼容 H2 的表选项和字段类型。
 
 ## 本机 MySQL 配置与验证（2026-11-14）
 

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Mianxu Demo" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.aiinterview.InterviewApplication" />
+    <module name="ai-inter-backend" />
+    <option name="PROGRAM_PARAMETERS" value="--spring.profiles.active=demo --server.port=8080" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
