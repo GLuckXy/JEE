@@ -1,6 +1,6 @@
 import { chromium } from '@playwright/test'
 import { randomBytes } from 'node:crypto'
-import { mkdir,writeFile } from 'node:fs/promises'
+import { mkdir,readFile,writeFile } from 'node:fs/promises'
 import assert from 'node:assert/strict'
 
 const base=process.env.FRONTEND_URL||'http://127.0.0.1:5173'
@@ -70,7 +70,16 @@ try{
   await page.screenshot({path:`${output}/03-project.png`,fullPage:true,animations:'disabled'})
   const snapshotPromise=page.waitForEvent('download')
   await page.getByRole('button',{name:'下载项目资料',exact:true}).click()
-  check('可下载本次项目JSON快照',(await snapshotPromise).suggestedFilename().endsWith('.json'))
+  const projectDownload=await snapshotPromise
+  check('可下载本次项目JSON快照',projectDownload.suggestedFilename().endsWith('.json'))
+  const selectedProject=JSON.parse(await readFile(await projectDownload.path(),'utf8'))
+  const practiceLink=page.getByRole('link',{name:'去普通训练 →',exact:true})
+  check('已选项目提供普通训练入口',(await practiceLink.getAttribute('href'))==='#/training')
+  await page.getByRole('link',{name:'用该项目开始正式模拟 →',exact:true}).click()
+  await page.waitForURL(url=>url.hash.startsWith('#/formal?') &&
+    new URLSearchParams(url.hash.split('?')[1]).get('projectId')===selectedProject.projectId)
+  await page.locator('.formal-choices').getByText(selectedProject.snapshot.name,{exact:true}).waitFor()
+  check('选择项目后直达正式模拟并自动预选该项目')
   await page.locator('.main-links').getByRole('link',{name:'个人资料',exact:true}).click()
   await page.getByLabel('学校（选填）',{exact:true}).fill('浏览器验证学校')
   await page.getByRole('button',{name:'保存资料',exact:true}).click()

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref,onMounted,watch,onBeforeUnmount} from 'vue'
-import {useRoute} from 'vue-router'
+import {RouterLink,useRoute} from 'vue-router'
 import {ElMessage} from 'element-plus'
 import {Check,Download,Right,Select} from '@element-plus/icons-vue'
 import {api,showError,ApiError} from '../api'
@@ -74,10 +74,18 @@ onBeforeUnmount(()=>requestId++)
           <span class="fine-print">按你确认过的真实内容提供。</span>
           <el-button type="primary" :loading="busy" :disabled="!!selection" :icon="selection?Check:undefined" @click="select">{{selection?'已选择此项目':'选择这个项目'}}<el-icon v-if="!selection" aria-hidden="true"><Right/></el-icon></el-button>
         </div>
-        <div v-if="selection" class="surface-sunken selection-result" role="status">
-          <h3><el-icon aria-hidden="true"><Check/></el-icon>项目已选好。</h3>
-          <p>已选择「{{selection.snapshot.name}}」。你可以下载已确认的项目资料，回顾职责与技术细节。</p>
-          <el-button :icon="Download" @click="exportSnapshot">下载项目资料</el-button>
+        <div v-if="selection" class="surface-sunken selection-result">
+          <div role="status">
+            <h3><el-icon aria-hidden="true"><Check/></el-icon>项目已选好。</h3>
+            <p>已选择「{{ selection.snapshot.name }}」，可以用这个项目开始模拟面试。</p>
+          </div>
+          <div class="selection-actions">
+            <el-button :tag="RouterLink" type="primary" :to="{ path: '/formal', query: { projectId: current.id } }">
+              用该项目开始正式模拟 →
+            </el-button>
+            <el-button :icon="Download" @click="exportSnapshot">下载项目资料</el-button>
+            <RouterLink class="training-next-link" to="/training">去普通训练 →</RouterLink>
+          </div>
         </div>
       </section>
     </div>
@@ -86,3 +94,30 @@ onBeforeUnmount(()=>requestId++)
     </el-empty>
   </main>
 </template>
+
+<style scoped>
+.selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.selection-actions .el-button {
+  margin-left: 0;
+}
+
+.training-next-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-10);
+  padding-inline: var(--s-2);
+  border-radius: var(--r-md);
+  color: var(--green);
+  font-size: var(--fs-ui);
+}
+
+.training-next-link:hover {
+  background: var(--green-100);
+}
+</style>
