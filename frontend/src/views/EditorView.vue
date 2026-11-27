@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {ref,computed,onMounted,onBeforeUnmount} from 'vue'
+import {ref,shallowRef,computed,onMounted,onBeforeUnmount} from 'vue'
 import {useRoute,useRouter,onBeforeRouteLeave} from 'vue-router'
 import {ElMessage,ElMessageBox} from 'element-plus'
-import {Download,Plus,Refresh,Clock,DocumentChecked,Right,Check} from '@element-plus/icons-vue'
+import {ArrowDown,Download,Plus,Refresh,Clock,DocumentChecked,Right,Check} from '@element-plus/icons-vue'
 import {api,ApiError,showError,downloadFile,TOKEN_KEY} from '../api'
 import {dateTime,emptyProject,emptyExperience} from '../types'
-import type {Detail,Payload,ResumeVersion} from '../types'
+import type {Detail,Payload,ProjectFields,ResumeVersion} from '../types'
 import PayloadReadOnly from '../components/PayloadReadOnly.vue'
 import DeleteResumeButton from '../components/DeleteResumeButton.vue'
 import {mergeParsed,changes,clonePayload} from '../mergeParsed'
@@ -19,6 +19,30 @@ async function applyAnalysis(){if(!mergePreview.value||!differences.value.length
 async function afterDelete(){deleted.value=true;baseline.value=JSON.stringify(payload.value);await router.replace('/resumes')}
 const selectedVersion=computed(()=>history.value.find(v=>v.version===activeVersion.value))
 const projectLabels={goal:'项目目标',responsibility:'本人职责',difficulty:'遇到的困难',solution:'解决过程',result:'结果与效果',improvement:'后续改进'} as const
+const projectTechPreviewCount = 3
+const projectSelection = shallowRef<ProjectFields | null>()
+const expandedProject = computed(() => {
+  const projects = payload.value?.projects
+  if (projectSelection.value === null) return null
+  if (projectSelection.value && projects?.includes(projectSelection.value)) return projectSelection.value
+  return projects?.[0]
+})
+
+function toggleProject(project: ProjectFields) {
+  projectSelection.value = expandedProject.value === project ? null : project
+}
+
+function addProject() {
+  const projects = payload.value?.projects
+  if (!projects || projects.length >= 30) return
+  projects.push(emptyProject())
+  projectSelection.value = projects[projects.length - 1]
+}
+
+function projectFilled(project: ProjectFields) {
+  return Boolean(project.name.trim() && project.responsibility.trim())
+}
+
 function adopt(value:Detail){detail.value=value;payload.value=structuredClone(value.draft);baseline.value=JSON.stringify(payload.value);conflict.value=false}
 async function load(){loading.value=true;error.value='';try{adopt(await api.detail(id))}catch(e){error.value=e instanceof Error?e.message:'加载失败'}finally{loading.value=false}}
 function handle(e:unknown){if(e instanceof ApiError&&e.code==='VERSION_CONFLICT')conflict.value=true;showError(e)}
@@ -147,27 +171,43 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
             <section id="edit-projects" class="form-section">
               <div class="section-head small-head">
                 <h3 class="editor-section-title"><span class="editor-section-number num" aria-hidden="true">04</span>项目经历 <span class="required-note">确认时至少一项</span></h3>
-                <el-button text :icon="Plus" :disabled="payload.projects.length>=30" @click="payload.projects.push(emptyProject())">添加项目</el-button>
+                <el-button text :icon="Plus" :disabled="payload.projects.length>=30" @click="addProject">添加项目</el-button>
               </div>
               <el-empty v-if="!payload.projects.length" description="添加一个你真实参与的项目" :image-size="65">
-                <el-button @click="payload.projects.push(emptyProject())">添加项目</el-button>
+                <el-button @click="addProject">添加项目</el-button>
               </el-empty>
               <div v-for="(project,index) in payload.projects" :key="index" class="draft-item surface-sunken project-item">
-                <div class="item-title">
-                  <span>PROJECT {{String(index+1).padStart(2,'0')}}</span>
-                  <el-button text type="danger" size="small" @click="removeDraftItem('projects',index)">移除</el-button>
+                <button type="button" class="project-item-toggle" :id="`project-toggle-${index}`"
+                  :aria-expanded="expandedProject === project" :aria-controls="`project-fields-${index}`"
+                  @click="toggleProject(project)">
+                  <el-icon class="project-item-chevron" aria-hidden="true"><ArrowDown/></el-icon>
+                  <span class="project-item-summary">
+                    <strong>{{ project.name.trim() || `未命名项目 ${index + 1}` }}</strong>
+                    <span v-if="project.techStack.length" class="tags">
+                      <span v-for="(tech, techIndex) in project.techStack.slice(0, projectTechPreviewCount)" :key="techIndex" class="tag">{{ tech }}</span>
+                      <span v-if="project.techStack.length > projectTechPreviewCount" class="tag num">+{{ project.techStack.length - projectTechPreviewCount }}</span>
+                    </span>
+                  </span>
+                  <span class="status-pill" :class="projectFilled(project) ? 'confirmed' : 'neutral'">{{ projectFilled(project) ? '已填' : '待补' }}</span>
+                </button>
+                <div :id="`project-fields-${index}`" :hidden="expandedProject !== project" role="group" :aria-labelledby="`project-toggle-${index}`">
+                  <template v-if="expandedProject === project">
+                    <div class="project-item-actions">
+                      <el-button text type="danger" size="small" @click="removeDraftItem('projects',index)">移除</el-button>
+                    </div>
+                    <el-form-item label="项目名称 *">
+                      <el-input v-model="project.name" maxlength="256" placeholder="用准确的名字描述你的项目"/>
+                    </el-form-item>
+                    <el-form-item v-for="(label,key) in projectLabels" :key="key" :label="label+(key==='responsibility'?' *':'')">
+                      <el-input v-model="project[key]" type="textarea" :rows="key==='responsibility'?3:2" maxlength="5000" show-word-limit :placeholder="key==='responsibility'?'写清你本人负责的部分，不要代填团队其他人的工作':'按真实经历填写，没有可留空'"/>
+                    </el-form-item>
+                    <el-form-item label="技术栈">
+                      <el-select v-model="project.techStack" multiple filterable allow-create default-first-option :reserve-keyword="false" :multiple-limit="100" placeholder="输入技术并回车添加" class="full-width">
+                        <el-option v-for="tech in project.techStack" :key="tech" :value="tech" :label="tech"/>
+                      </el-select>
+                    </el-form-item>
+                  </template>
                 </div>
-                <el-form-item label="项目名称 *">
-                  <el-input v-model="project.name" maxlength="256" placeholder="用准确的名字描述你的项目"/>
-                </el-form-item>
-                <el-form-item v-for="(label,key) in projectLabels" :key="key" :label="label+(key==='responsibility'?' *':'')">
-                  <el-input v-model="project[key]" type="textarea" :rows="key==='responsibility'?3:2" maxlength="5000" show-word-limit :placeholder="key==='responsibility'?'写清你本人负责的部分，不要代填团队其他人的工作':'按真实经历填写，没有可留空'"/>
-                </el-form-item>
-                <el-form-item label="技术栈">
-                  <el-select v-model="project.techStack" multiple filterable allow-create default-first-option :reserve-keyword="false" :multiple-limit="100" placeholder="输入技术并回车添加" class="full-width">
-                    <el-option v-for="tech in project.techStack" :key="tech" :value="tech" :label="tech"/>
-                  </el-select>
-                </el-form-item>
               </div>
             </section>
           </el-form>

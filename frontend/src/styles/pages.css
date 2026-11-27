@@ -847,6 +847,45 @@
   font-size: var(--fs-caption);
 }
 
+.project-item-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--s-10);
+  padding: var(--s-2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.project-item-toggle:hover {
+  background: var(--surface);
+}
+
+.project-item-toggle[aria-expanded="false"] .project-item-chevron {
+  transform: rotate(-90deg);
+}
+
+.project-item-summary {
+  display: grid;
+  gap: var(--s-1);
+  overflow-wrap: anywhere;
+}
+
+.project-item-summary .tag {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.project-item-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .editor-actions {
   position: sticky;
   bottom: var(--s-4);

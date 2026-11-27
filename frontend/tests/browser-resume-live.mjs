@@ -1,4 +1,4 @@
-import {chromium} from '@playwright/test'
+import {chromium,expect} from '@playwright/test'
 import {randomBytes} from 'node:crypto'
 import {mkdir,writeFile} from 'node:fs/promises'
 import assert from 'node:assert/strict'
@@ -39,6 +39,28 @@ try{
  check('重新解析不覆盖已保存草稿',detail.draft.projects[0].responsibility==='本人手填内容必须保留'&&detail.draft.education[0].title==='')
  await context.addInitScript(value=>sessionStorage.setItem('mianxu.session',value),token)
  await page.goto(base+`/#/resumes/${id}`)
+ const projectList=page.locator('#edit-projects')
+ const firstProject=projectList.getByRole('button',{name:/Interview Platform/})
+ const secondProject=projectList.getByRole('button',{name:/Course System/})
+ const projectName=projectList.getByLabel('项目名称 *',{exact:true})
+ await expect(firstProject).toHaveAttribute('aria-expanded','true')
+ await expect(secondProject).toHaveAttribute('aria-expanded','false')
+ await expect(secondProject).toContainText('已填')
+ await expect(projectName).toHaveCount(1)
+ await secondProject.press('Enter')
+ await expect(firstProject).toHaveAttribute('aria-expanded','false')
+ await expect(firstProject).toContainText('MySQL')
+ await expect(projectName).toHaveValue('Course System')
+ await projectList.getByRole('button',{name:'添加项目',exact:true}).click()
+ const newProject=projectList.getByRole('button',{name:/未命名项目 3/})
+ await expect(newProject).toHaveAttribute('aria-expanded','true')
+ await expect(newProject).toContainText('待补')
+ await expect(secondProject).toHaveAttribute('aria-expanded','false')
+ await projectList.getByRole('button',{name:'移除',exact:true}).click()
+ await page.getByRole('dialog',{name:'移除草稿条目'}).getByRole('button',{name:'移除',exact:true}).click()
+ await expect(projectName).toHaveValue('Interview Platform')
+ await expect(page.getByRole('button',{name:'保存草稿',exact:true})).toBeDisabled()
+ check('项目默认只展开第一项，切换或新增时只展开目标项目，移除未保存项目后恢复原草稿')
  await page.getByRole('button',{name:'查看解析候选与填表建议',exact:true}).click()
  await page.getByRole('button',{name:'填入空白字段',exact:true}).click()
  await page.getByRole('button',{name:'确认填入空白',exact:true}).click()
