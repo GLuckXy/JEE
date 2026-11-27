@@ -1007,3 +1007,25 @@ html {
 .segmented-control button:focus-visible {
   z-index: 1;
 }
+
+/* Interview and training session controls */
+.session-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.session-tools__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-10);
+  padding-inline: var(--s-2);
+  border-radius: var(--r-md);
+  color: var(--green);
+  font-size: var(--fs-ui);
+}
+
+.session-tools__link:hover {
+  background: var(--green-50);
+}

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
-import { ElAlert, ElButton, ElOption, ElSelect } from 'element-plus'
+import { ElAlert, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElOption, ElSelect } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useAuth } from '../../stores/auth'
 import { createFormalApi } from './formalApi.js'
@@ -38,6 +38,7 @@ const totalRemaining = computed(() => {
 })
 
 const turnSeconds = computed(() => Math.ceil(remaining.value / 1000))
+const canRetryProcessing = computed(() => ['AUDIO_SAVED', 'NEEDS_FOLLOW_UP'].includes(session.value?.state))
 const totalClock = computed(() => {
   const seconds = Math.ceil(totalRemaining.value / 1000)
   return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0')
@@ -253,7 +254,7 @@ onUnmounted(() => {
         show-icon
       />
       <p v-if="options && (!options.asrReady || !options.modelReady)" class="muted">
-        本地验收人员请切换到真实联调模式后体验正式模拟。
+        语音转写或项目提问服务暂未就绪，请稍后再试或联系管理员。
       </p>
       <div class="formal-choices">
         <label>目标岗位
@@ -288,7 +289,24 @@ onUnmounted(() => {
     <section v-else class="surface formal-turn" aria-label="当前问题">
       <div class="formal-progress">
         <span class="tag green">{{ stages[session.turn.stage] }}{{ session.turn.followUp ? ' · 追问' : '' }}</span>
-        <span class="muted num">第 {{ session.index }} / {{ session.total }} 题</span>
+        <div class="session-tools">
+          <span class="muted num">第 {{ session.index }} / {{ session.total }} 题</span>
+          <ElDropdown trigger="click" placement="bottom-end" :disabled="busy">
+            <ElButton text :disabled="busy">更多操作</ElButton>
+            <template #dropdown>
+              <ElDropdownMenu>
+                <ElDropdownItem v-if="!recording" :disabled="busy" @click="refresh">刷新状态</ElDropdownItem>
+                <ElDropdownItem v-if="canRetryProcessing && pending?.blob?.size" :disabled="busy" @click="perform(uploadPending)">
+                  重试上传
+                </ElDropdownItem>
+                <ElDropdownItem v-if="!pending" :disabled="busy" @click="end('EARLY_EXIT')">提前结束</ElDropdownItem>
+                <ElDropdownItem v-if="!recording && session.state !== 'READY'" :disabled="busy" @click="end('INTERRUPTED')">
+                  标记技术中断
+                </ElDropdownItem>
+              </ElDropdownMenu>
+            </template>
+          </ElDropdown>
+        </div>
       </div>
       <h1 class="formal-question">{{ session.turn.text || '开始录音后显示本题' }}</h1>
 
@@ -312,24 +330,19 @@ onUnmounted(() => {
       </p>
 
       <div class="formal-actions">
-        <ElButton v-if="session.state === 'READY' && !pending" type="primary" :disabled="busy" @click="startRecording">
-          开始录音
-        </ElButton>
         <ElButton v-if="recording" type="primary" :disabled="busy" @click="submitRecording()">
           提交本题
         </ElButton>
-        <ElButton v-if="pending?.blob?.size" type="primary" :disabled="busy" @click="perform(uploadPending)">
-          重试上传
+        <ElButton v-else-if="session.state === 'READY' && !pending" type="primary" :disabled="busy" @click="startRecording">
+          开始录音
         </ElButton>
-        <ElButton v-if="['AUDIO_SAVED', 'NEEDS_FOLLOW_UP'].includes(session.state)" type="primary" :disabled="busy" @click="retry">
+        <ElButton v-else-if="canRetryProcessing" type="primary" :disabled="busy" @click="retry">
           重试处理
         </ElButton>
-        <ElButton v-if="session.state === 'NEEDS_FOLLOW_UP'" :disabled="busy" @click="skip">跳过追问</ElButton>
-        <ElButton v-if="!recording" :disabled="busy" @click="refresh">刷新状态</ElButton>
-        <ElButton v-if="!pending" :disabled="busy" @click="end('EARLY_EXIT')">提前结束</ElButton>
-        <ElButton v-if="!recording && session.state !== 'READY'" :disabled="busy" @click="end('INTERRUPTED')">
-          标记技术中断
+        <ElButton v-else-if="pending?.blob?.size" type="primary" :disabled="busy" @click="perform(uploadPending)">
+          重试上传
         </ElButton>
+        <ElButton v-if="session.state === 'NEEDS_FOLLOW_UP'" :disabled="busy" @click="skip">跳过追问</ElButton>
       </div>
     </section>
   </main>

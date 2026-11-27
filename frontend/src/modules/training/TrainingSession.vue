@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElAlert, ElButton, ElInput, ElProgress } from 'element-plus'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { ElAlert, ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElInput, ElProgress } from 'element-plus'
 import VoiceRecorder from '../voice/VoiceRecorder.vue'
 import AnswerFeedback from './AnswerFeedback.vue'
 import { api, audioPath, duration, message, sessionPath, stateLabel } from './api'
@@ -303,7 +303,21 @@ onBeforeUnmount(() => {
             <span class="tag num">有效作答 {{ duration(clock) }}</span>
             <span class="tag" :class="{ green: session.state === 'ENDED', orange: active }">{{ stateLabel(session.state) }}</span>
           </div>
-          <span class="muted num">{{ special ? '专项训练' : '普通训练' }} · 第 {{ session.roundNumber }} 轮</span>
+          <div class="session-tools">
+            <span class="muted num">{{ special ? '专项训练' : '普通训练' }} · 第 {{ session.roundNumber }} 轮</span>
+            <RouterLink class="session-tools__link" :to="special ? '/practice' : '/training'">返回选题</RouterLink>
+            <ElDropdown v-if="session.state !== 'ENDED'" trigger="click" placement="bottom-end" :disabled="!!busy">
+              <ElButton text :disabled="!!busy">更多操作</ElButton>
+              <template #dropdown>
+                <ElDropdownMenu>
+                  <ElDropdownItem v-if="active" :disabled="!!busy || recordPhase === 'permission'" @click="pause">
+                    暂停并保存
+                  </ElDropdownItem>
+                  <ElDropdownItem :disabled="!!busy || recording" @click="transition('end')">结束训练</ElDropdownItem>
+                </ElDropdownMenu>
+              </template>
+            </ElDropdown>
+          </div>
         </div>
         <ElProgress :percentage="Math.round(tally / session.total * 100)" :format="() => tally + ' / ' + session.total" />
         <div class="bubble ai">
@@ -344,13 +358,12 @@ onBeforeUnmount(() => {
           <ElButton v-if="active && answering" type="primary" :disabled="!!busy || recording || !draft.trim()" @click="submit">
             提交本题回答
           </ElButton>
-          <ElButton v-if="active && !answering" type="success" :disabled="!!busy" @click="transition('redraft')">重答本题</ElButton>
-          <ElButton v-if="active && !answering && !last" :disabled="!!busy" @click="transition('next')">下一题</ElButton>
-          <ElButton v-if="active" :disabled="!!busy || recordPhase === 'permission'" @click="pause">暂停并保存</ElButton>
-          <ElButton v-if="session.state === 'PAUSED'" type="success" :disabled="!!busy" @click="transition('resume')">继续训练</ElButton>
-          <ElButton v-if="session.state !== 'ENDED'" text :disabled="!!busy || recording" @click="transition('end')">结束训练</ElButton>
-          <RouterLink v-if="session.state === 'ENDED'" :to="`/reports/${id}`">查看本场报告</RouterLink>
-          <RouterLink :to="special ? '/practice' : '/training'">返回选题</RouterLink>
+          <ElButton v-if="active && !answering" :type="last ? 'primary' : undefined" :disabled="!!busy" @click="transition('redraft')">重答本题</ElButton>
+          <ElButton v-if="active && !answering && !last" type="primary" :disabled="!!busy" @click="transition('next')">下一题</ElButton>
+          <ElButton v-if="session.state === 'PAUSED'" type="primary" :disabled="!!busy" @click="transition('resume')">继续训练</ElButton>
+          <ElButton v-if="session.state === 'ENDED'" :tag="RouterLink" type="primary" :to="'/reports/' + id">
+            查看本场报告
+          </ElButton>
         </div>
         <p v-if="busy || status" role="status">{{ busy || status }}</p>
         <p v-if="draftError && active && answering" class="notice" role="alert">{{ draftError }}</p>

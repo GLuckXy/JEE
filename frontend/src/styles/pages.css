@@ -1356,7 +1356,7 @@
   margin-block: var(--s-2);
 }
 
-.training-app a,
+.training-app a:not(.el-button),
 .training-app summary {
   color: var(--green);
 }
