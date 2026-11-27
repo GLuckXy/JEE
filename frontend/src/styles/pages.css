@@ -1764,8 +1764,7 @@
   margin-bottom: var(--s-3);
 }
 
-.demo-toolbar h2,
-.demo-library > h2 {
+.demo-toolbar h2 {
   margin: 0;
 }
 
@@ -1800,6 +1799,40 @@
   margin-top: var(--s-1);
   color: var(--muted);
   font-size: var(--fs-small);
+}
+
+.demo-drawer {
+  --demo-drawer-width: min(680px, 85vw);
+}
+
+.demo-drawer .el-drawer__title {
+  color: var(--ink);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.demo-source {
+  margin-top: 0;
+  overflow-wrap: anywhere;
+}
+
+.demo-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
+.demo-drawer-actions .el-button {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .demo-drawer {
+    --demo-drawer-width: 100%;
+  }
 }
 
 .demo-stage {
