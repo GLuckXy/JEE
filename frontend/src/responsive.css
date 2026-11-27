@@ -1,7 +1,4 @@
-/* Balance long Chinese headings so mobile layouts do not leave a single orphan character. */
-.home-hero h1 { text-wrap: balance; }
 @media(max-width:420px) {
-  .home-hero h1 { font-size:28px; }
   .editor-actions { flex-wrap:wrap; }
   .editor-actions > div:first-child { display:flex;gap:12px;align-items:center; }
   .editor-actions small { max-width:none;margin-top:0; }
