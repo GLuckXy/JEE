@@ -70,7 +70,7 @@ onBeforeUnmount(()=>{disposed=true;if(timer)clearTimeout(timer)})
 <template>
   <main class="page-shell report-page">
     <header class="page-heading">
-      <div class="eyebrow">PRACTICE JOURNAL</div>
+      <div class="eyebrow">复盘</div>
       <h1>{{ id ? '回看这一场。' : '报告与训练历史' }}</h1>
       <p class="muted">按当时的题目和作答生成反馈。之后的题库调整不会改变已有报告。</p>
     </header>
@@ -109,7 +109,7 @@ onBeforeUnmount(()=>{disposed=true;if(timer)clearTimeout(timer)})
 
     <template v-else-if="report">
       <section class="surface report-overview" v-loading="busy">
-        <div class="eyebrow">{{ modes[report.mode] }} · {{ ends[report.endReason] }}</div>
+        <div class="report-context"><span class="tag">{{ modes[report.mode] }} · {{ ends[report.endReason] }}</span></div>
         <h2>整场概况</h2>
         <template v-if="report.summary">
           <div class="report-overview__summary">
@@ -157,7 +157,7 @@ onBeforeUnmount(()=>{disposed=true;if(timer)clearTimeout(timer)})
       <section v-if="report.answers.length" class="report-answers">
         <h2>逐题回顾</h2>
         <article v-for="answer in report.answers" :key="answer.id" class="surface report-answer">
-          <div class="eyebrow num">
+          <div class="report-answer__context num">
             {{ answer.topic || stages[answer.stage] }} {{ answer.followUp ? '· 追问' : '' }}
             {{ report.mode !== 'FORMAL' && answer.round ? '· 第 ' + answer.round + ' 轮' : '' }}
           </div>

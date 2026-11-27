@@ -14,9 +14,9 @@ async function submit(){if(!await form.value?.validate().catch(()=>false))return
 <template>
   <main class="auth-layout">
     <section class="auth-story">
-      <div class="eyebrow">面向校招的 AI 模拟面试</div>
+      <div class="eyebrow">账户</div>
       <h1>你的经历，<br><span class="highlight">值得被认真看见。</span></h1>
-      <p class="auth-subtitle">整理真实的项目经历，在一次次追问中练习清楚地表达。</p>
+      <p class="auth-subtitle">面向校招的 AI 模拟面试，帮你练习如何讲清真实的项目经历。</p>
 
       <div class="auth-preview" aria-hidden="true">
         <div class="auth-preview__question">
@@ -59,7 +59,7 @@ async function submit(){if(!await form.value?.validate().catch(()=>false))return
         <el-form-item v-if="register" label="确认密码" prop="confirmation">
           <el-input v-model="fields.confirmation" type="password" show-password autocomplete="new-password" placeholder="再次输入密码" />
         </el-form-item>
-        <el-button class="yellow-button auth-submit" native-type="submit" :loading="busy">
+        <el-button type="primary" class="auth-submit" native-type="submit" :loading="busy">
           {{ register ? '创建账号' : '登录面序' }}
         </el-button>
       </el-form>

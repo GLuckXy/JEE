@@ -229,7 +229,7 @@ onUnmounted(() => {
 <template>
   <main class="page-shell formal">
     <header v-if="!session" class="page-heading">
-      <div class="eyebrow">TIMED INTERVIEW</div>
+      <div class="eyebrow">训练</div>
       <h1>正式模拟面试</h1>
       <p class="muted">请使用麦克风作答。整场按有效作答时间计时，提交后的首次录音会保留。</p>
     </header>

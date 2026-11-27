@@ -83,11 +83,10 @@
   --fs-caption: 12px;
   --lh-caption: 1.5;
 
-  /* 组件补充值与旧模块兼容 */
+  /* 组件补充值 */
   --shadow-input-hover: 0 0 0 1px rgba(20,32,27,.28) inset;
   --overlay: rgba(20,32,27,.32);
   --skeleton-glint: #fafbf9;
-  --line: var(--hairline);
 }
 
 :root {

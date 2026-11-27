@@ -1,6 +1,6 @@
 # 面序前端
 
-基于已确认的第二版视觉稿，使用 Vue 3、TypeScript、Vite、Element Plus、Axios、Vue Router 与 Pinia。白底、深绿、黄色主按钮，桌面采用顶部导航与宽卡片，手机采用单列布局。
+基于已确认的第二版视觉稿，使用 Vue 3、TypeScript、Vite、Element Plus、Axios、Vue Router 与 Pinia。界面使用浅色画布、白色卡片和森林绿主按钮，手机采用单列布局。
 
 ## 启动
 
@@ -60,7 +60,7 @@ JWT 仅保存于当前标签页 sessionStorage，页面刷新后重新请求本�
 - 个人资料未修改时禁用保存，修改后显示未保存提示；登录、注册和个人资料表单在提交期间禁用编辑。
 - 统一按钮、输入框、辅助文字、键盘焦点与状态标记；修复 320px/390px 窄屏布局，管理员表格在手机上横向滚动，避免固定操作列遮挡资料。
 
-样式加载顺序为 `style.css` → `responsive.css` → `polish.css`。`polish.css` 是本轮调整入口，其中有 Element Plus 的全局覆盖；其他成员接入新页面时需一起检查按钮、表单、弹窗和移动布局。
+全局样式位于 `src/styles/`，加载顺序为 `tokens.css` → `base.css` → `components.css` → `pages.css`。颜色与字号由设计变量提供，Element Plus 的全局组件样式位于 `components.css`。
 
 正式运行可使用[初版发布包](../README.md#初版发布包)。调试时仍可按上方步骤连接后端，自行注册账号；临时界面预览服务和示例登录方式不包含在仓库中。
 

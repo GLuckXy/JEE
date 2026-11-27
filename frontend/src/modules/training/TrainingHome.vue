@@ -118,7 +118,7 @@ async function start(strategy) {
 
 <template>
   <main :id="special ? 'practice' : 'interview'" class="page-shell training-app page">
-    <header class="page-heading training-heading"><div class="eyebrow">{{special ? 'FOCUSED PRACTICE' : 'PRACTICE ROOM'}}</div><h1>{{special ? '专项训练' : '普通训练'}}</h1><p class="muted">{{special ? '按知识点或难度选题，也可以针对以前的答题记录复练。' : '选择岗位和题目，按自己的节奏练习。'}}</p></header>
+    <header class="page-heading training-heading"><div class="eyebrow">训练</div><h1>{{special ? '专项训练' : '普通训练'}}</h1><p class="muted">{{special ? '按知识点或难度选题，也可以针对以前的答题记录复练。' : '选择岗位和题目，按自己的节奏练习。'}}</p></header>
     <ElAlert v-if="error" :title="error" type="error" :closable="false" show-icon />
     <div class="grid two">
       <section :id="special ? undefined : 'interviewSetup'" class="panel surface">

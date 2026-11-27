@@ -109,6 +109,40 @@ b {
   white-space: nowrap;
 }
 
+.muted,
+.fine-print,
+.meta {
+  color: var(--muted);
+}
+
+.muted {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+}
+
+.fine-print,
+.meta {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+}
+
+.meta {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.green {
+  color: var(--green);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.preserve {
+  white-space: pre-wrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

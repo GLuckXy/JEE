@@ -9,4 +9,22 @@ function change(item:UploadFile){if(!item.raw)return;const extension=item.name.s
 async function upload(){if(!file.value)return;busy.value=true;progress.value=0;try{const extension=file.value.name.split('.').pop()!.toLowerCase();const mime:Record<string,string>={pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};const typed=new File([file.value],file.value.name,{type:mime[extension]});const detail=await api.upload(typed,v=>progress.value=v);open.value=false;fileList.value=[];file.value=undefined;await router.push(`/resumes/${detail.summary.id}`)}catch(e){showError(e)}finally{busy.value=false}}
 function closed(){file.value=undefined;fileList.value=[];progress.value=0}
 </script>
-<template><el-dialog v-model="open" title="上传你的简历" width="520px" :close-on-click-modal="!busy" :show-close="!busy" :close-on-press-escape="!busy" @closed="closed"><p class="muted dialog-intro">提取经历后，你可以逐项校对并补充真实内容。</p><el-upload v-model:file-list="fileList" drag :auto-upload="false" :limit="1" accept=".pdf,.doc,.docx" :disabled="busy" :on-change="change" :on-remove="()=>file=undefined" :on-exceed="()=>showError(new Error('请先移除当前文件再重新选择'))"><el-icon class="upload-icon"><UploadFilled/></el-icon><p>拖放简历到这里，或<span class="green">点击选择</span></p><div class="fine-print">PDF / DOC / DOCX · 最大 10 MB</div></el-upload><el-progress v-if="busy" :percentage="progress" :indeterminate="progress>=99"/><p v-if="busy" class="fine-print">正在上传与提取文本，请保持页面打开。耗时可能稍长。</p><el-alert title="扫描件也可以上传。若无法提取文字，可手动补充后确认。" type="info" :closable="false" show-icon/><template #footer><el-button :disabled="busy" @click="open=false">取消</el-button><el-button class="yellow-button" :disabled="!file" :loading="busy" @click="upload">上传并解析</el-button></template></el-dialog></template>
+<template>
+  <el-dialog class="upload-dialog" v-model="open" title="上传你的简历" width="520px" :close-on-click-modal="!busy" :show-close="!busy" :close-on-press-escape="!busy" @closed="closed">
+    <p class="muted dialog-intro">提取经历后，你可以逐项校对并补充真实内容。</p>
+    <el-upload v-model:file-list="fileList" drag :auto-upload="false" :limit="1" accept=".pdf,.doc,.docx" :disabled="busy" :on-change="change" :on-remove="()=>file=undefined" :on-exceed="()=>showError(new Error('请先移除当前文件再重新选择'))">
+      <el-icon class="upload-icon" aria-hidden="true">
+        <UploadFilled/>
+      </el-icon>
+      <p>拖放简历到这里，或<span class="green">点击选择</span></p>
+      <div class="fine-print">PDF / DOC / DOCX · 最大 10 MB</div>
+    </el-upload>
+    <el-progress v-if="busy" class="upload-progress" :percentage="progress" :indeterminate="progress>=99"/>
+    <p v-if="busy" class="fine-print" role="status">正在上传与提取文本，请保持页面打开。耗时可能稍长。</p>
+    <el-alert title="扫描件也可以上传。若无法提取文字，可手动补充后确认。" type="info" :closable="false" show-icon/>
+    <template #footer>
+      <el-button :disabled="busy" @click="open=false">取消</el-button>
+      <el-button type="primary" :disabled="!file" :loading="busy" @click="upload">上传并解析</el-button>
+    </template>
+  </el-dialog>
+</template>

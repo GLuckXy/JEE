@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
 
 <template>
   <main :id="special ? 'practice' : 'interview'" class="page-shell training-app page">
-    <header class="page-heading training-heading"><div class="eyebrow">{{special ? 'FOCUSED PRACTICE' : 'PRACTICE ROOM'}}</div><h1>{{special ? '专项作答' : '普通作答'}}</h1></header>
+    <header class="page-heading training-heading"><div class="eyebrow">训练</div><h1>{{special ? '专项作答' : '普通作答'}}</h1></header>
     <div v-if="error" class="request-error">
       <ElAlert :title="error" type="error" :closable="false" show-icon />
       <ElButton v-if="!session" @click="refresh">重新加载</ElButton>

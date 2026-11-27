@@ -1,3 +1,212 @@
+/* Shared layout and utilities */
+.brand {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--green);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+}
+
+.brand-mark {
+  position: relative;
+  width: var(--s-8);
+  height: var(--s-8);
+  border: var(--s-1) solid var(--green);
+  border-radius: var(--r-sm);
+}
+
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  right: calc(-1 * var(--s-2));
+  bottom: calc(-1 * var(--s-1));
+  width: var(--s-3);
+  height: var(--s-1);
+  transform: rotate(43deg);
+  border-radius: 2px;
+  background: var(--green);
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s-8);
+  height: var(--s-8);
+  border-radius: var(--r-full);
+  background: var(--green-50);
+  color: var(--green);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.delete-control {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.back-link,
+.inline-link {
+  color: var(--green);
+  font-size: var(--fs-small);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s-10);
+  margin-bottom: var(--s-4);
+}
+
+.inline-link {
+  margin-inline: var(--s-2);
+}
+
+.form-grid {
+  display: grid;
+  gap: 0 var(--s-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-top: var(--s-2);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--hairline);
+}
+
+.el-form-item {
+  margin-bottom: var(--s-6);
+}
+
+.el-pagination {
+  justify-content: center;
+  margin-top: var(--s-6);
+}
+
+.el-result__title p {
+  font-size: var(--fs-h2);
+}
+
+.el-skeleton {
+  max-width: 100%;
+}
+
+.loading-block {
+  padding-block: var(--s-8);
+}
+
+.el-alert {
+  margin-bottom: var(--s-5);
+}
+
+.el-dialog,
+.el-message-box {
+  max-width: calc(100vw - var(--s-8));
+}
+
+.el-dialog {
+  padding: var(--s-6);
+}
+
+.el-dialog__body {
+  padding-top: var(--s-3);
+}
+
+.el-dialog__footer,
+.el-message-box__btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
+.el-dialog__footer {
+  padding-top: var(--s-6);
+}
+
+.el-dialog__footer .el-button,
+.el-message-box__btns .el-button {
+  margin: 0;
+}
+
+.el-message-box__content {
+  line-height: var(--lh-body);
+}
+
+.el-drawer__body {
+  padding: var(--s-6);
+}
+
+.el-drawer .el-table .cell {
+  overflow-wrap: anywhere;
+}
+
+.el-drawer .el-radio-group {
+  gap: var(--s-2);
+}
+
+@media (max-width: 760px) {
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-footer {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .el-dialog,
+  .el-drawer__body {
+    padding: var(--s-5);
+  }
+
+  .el-dialog__footer .el-button {
+    flex: 1;
+  }
+
+  .el-message {
+    max-width: calc(100vw - var(--s-6));
+  }
+
+  .el-table__body-wrapper {
+    overflow-x: auto;
+  }
+}
+
+/* Resume upload */
+.upload-dialog .dialog-intro {
+  margin: 0 0 var(--s-4);
+}
+
+.upload-icon {
+  color: var(--subtle);
+  font-size: var(--fs-display);
+}
+
+.el-upload-dragger {
+  padding: var(--s-10) var(--s-4);
+}
+
+.upload-dialog .el-alert,
+.upload-dialog .upload-progress {
+  margin-block: var(--s-4) 0;
+}
+
+@media (max-width: 760px) {
+  .el-upload-dragger {
+    padding: var(--s-6) var(--s-3);
+  }
+}
+
 /* Buttons */
 .el-button {
   --el-button-font-weight: 500;
@@ -64,7 +273,7 @@
   --el-button-disabled-text-color: var(--muted);
 }
 
-.el-button:is(.el-button--primary, .el-button--success, .yellow-button):not(.is-plain, .is-text, .is-link) {
+.el-button:is(.el-button--primary, .el-button--success):not(.is-plain, .is-text, .is-link) {
   --el-button-text-color: var(--surface);
   --el-button-bg-color: var(--green);
   --el-button-border-color: var(--green);
@@ -116,13 +325,19 @@
   background-color: var(--danger-50);
 }
 
-.el-button.delete-resume:not(.is-disabled) {
-  background-color: var(--surface);
-  border-color: var(--hairline-strong);
-}
-
-.el-button.delete-resume.is-disabled {
-  border-color: var(--hairline);
+.el-button.delete-resume {
+  --el-button-bg-color: var(--surface);
+  --el-button-border-color: var(--hairline-strong);
+  --el-button-text-color: var(--danger);
+  --el-button-hover-bg-color: var(--danger-50);
+  --el-button-hover-border-color: var(--hairline-strong);
+  --el-button-hover-text-color: var(--danger);
+  --el-button-active-bg-color: var(--danger-50);
+  --el-button-active-border-color: var(--danger);
+  --el-button-active-text-color: var(--danger);
+  --el-button-disabled-bg-color: var(--surface);
+  --el-button-disabled-border-color: var(--hairline);
+  --el-button-disabled-text-color: var(--muted);
 }
 
 .card-actions > :is(.card-primary, .card-secondary) {

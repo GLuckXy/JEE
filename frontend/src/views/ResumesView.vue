@@ -34,7 +34,7 @@ onMounted(load)
         </div>
         <p class="muted">PDF / Word，最大 10 MB</p>
       </div>
-      <el-button class="yellow-button" :icon="Upload" @click="uploadOpen=true">上传简历</el-button>
+      <el-button type="primary" :icon="Upload" @click="uploadOpen=true">上传简历</el-button>
     </header>
 
     <PrepRail v-if="!loading && !error" :records="records" />

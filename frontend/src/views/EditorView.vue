@@ -48,7 +48,7 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
     <template v-else-if="detail&&payload">
       <div class="page-heading heading-with-actions">
         <div>
-          <div class="eyebrow">YOUR EXPERIENCE. YOUR WORDS.</div>
+          <div class="eyebrow">准备</div>
           <h1>把每一段经历，写准确。</h1>
           <p class="muted">{{detail.summary.originalName}} · {{detail.summary.version?`最近确认 V${detail.summary.version}`:'尚未确认'}}</p>
         </div>
@@ -183,8 +183,8 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
         </div>
         <div class="action-buttons">
           <el-button :disabled="busy||!dirty" :loading="busy" @click="save">保存草稿</el-button>
-          <el-button v-if="detail.summary.confirmStatus!=='CONFIRMED'||dirty" class="yellow-button" :loading="busy" :disabled="conflict" @click="confirm">确认简历<el-icon aria-hidden="true"><Right/></el-icon></el-button>
-          <el-button v-else class="yellow-button" @click="router.push({path:'/projects',query:{resumeId:id}})">选择项目<el-icon aria-hidden="true"><Right/></el-icon></el-button>
+          <el-button v-if="detail.summary.confirmStatus!=='CONFIRMED'||dirty" type="primary" :loading="busy" :disabled="conflict" @click="confirm">确认简历<el-icon aria-hidden="true"><Right/></el-icon></el-button>
+          <el-button v-else type="primary" @click="router.push({path:'/projects',query:{resumeId:id}})">选择项目<el-icon aria-hidden="true"><Right/></el-icon></el-button>
         </div>
       </div>
       <el-drawer v-model="analysisOpen" title="解析候选与填表建议" size="min(820px, 100vw)">
@@ -210,7 +210,7 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
               </template>
             </el-table-column>
           </el-table>
-          <el-button class="yellow-button analysis-apply" :disabled="!differences.length||busy" @click="applyAnalysis">{{mergeMode==='fill'?'填入空白字段':'应用替换结果'}}</el-button>
+          <el-button type="primary" class="analysis-apply" :disabled="!differences.length||busy" @click="applyAnalysis">{{mergeMode==='fill'?'填入空白字段':'应用替换结果'}}</el-button>
           <el-collapse>
             <el-collapse-item title="查看完整解析候选" name="candidate">
               <PayloadReadOnly :payload="candidate"/>
