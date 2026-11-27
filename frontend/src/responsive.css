@@ -1,6 +1,0 @@
-@media(max-width:420px) {
-  .editor-actions { flex-wrap:wrap; }
-  .editor-actions > div:first-child { display:flex;gap:12px;align-items:center; }
-  .editor-actions small { max-width:none;margin-top:0; }
-  .action-buttons { margin-left:auto; }
-}

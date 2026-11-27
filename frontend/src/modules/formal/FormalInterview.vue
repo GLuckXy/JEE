@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElAlert, ElButton, ElOption, ElSelect } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { useAuth } from '../../stores/auth'
@@ -36,6 +36,17 @@ const totalRemaining = computed(() => {
   const available = session.value.turn.deadlineAt - session.value.serverTime
   return Math.max(0, session.value.remainingMillis - Math.min(elapsed, available))
 })
+
+const turnSeconds = computed(() => Math.ceil(remaining.value / 1000))
+const totalClock = computed(() => {
+  const seconds = Math.ceil(totalRemaining.value / 1000)
+  return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0')
+})
+
+watch(() => session.value?.state, state => {
+  document.documentElement.classList.toggle('is-focus', Boolean(state && state !== 'ENDED'))
+})
+onBeforeUnmount(() => document.documentElement.classList.remove('is-focus'))
 
 function sync(value) {
   now.value = Date.now()
@@ -217,25 +228,34 @@ onUnmounted(() => {
 
 <template>
   <main class="page-shell formal">
-    <header class="page-heading">
+    <header v-if="!session" class="page-heading">
       <div class="eyebrow">TIMED INTERVIEW</div>
       <h1>正式模拟面试</h1>
-      <p>请使用麦克风作答。整场按有效作答时间计时，提交后的首次录音会保留。</p>
+      <p class="muted">请使用麦克风作答。整场按有效作答时间计时，提交后的首次录音会保留。</p>
     </header>
+
     <ElAlert v-if="error" type="error" :title="error" :closable="false" show-icon />
-    <section v-if="!session" class="card" aria-label="面试设置">
+    <section v-if="!session" class="surface formal-settings" aria-label="面试设置">
       <ElAlert
         v-if="options && !options.asrReady"
+        class="formal-warning"
         type="warning"
         title="语音转写服务尚未配置"
         :closable="false"
         show-icon
       />
-      <ElAlert v-if="options && !options.modelReady" type="warning" title="项目提问服务尚未配置" :closable="false" show-icon />
+      <ElAlert
+        v-if="options && !options.modelReady"
+        class="formal-warning"
+        type="warning"
+        title="项目提问服务尚未配置"
+        :closable="false"
+        show-icon
+      />
       <p v-if="options && (!options.asrReady || !options.modelReady)" class="muted">
         本地验收人员请切换到真实联调模式后体验正式模拟。
       </p>
-      <div class="choices">
+      <div class="formal-choices">
         <label>目标岗位
           <ElSelect v-model="roleId" aria-label="目标岗位" placeholder="选择目标岗位">
             <ElOption v-for="role in options?.roles" :key="role.id" :label="role.name" :value="role.id" />
@@ -248,7 +268,7 @@ onUnmounted(() => {
         </label>
       </div>
       <p v-if="options && !options.projects.length" class="muted">请先在 <RouterLink to="/resumes">简历管理</RouterLink> 中确认一个项目。</p>
-      <div class="actions">
+      <div class="formal-actions">
         <ElButton type="primary" :loading="busy" :disabled="!roleId || !projectId || !options?.asrReady || !options?.modelReady" @click="create">
           检查麦克风并开始
         </ElButton>
@@ -256,28 +276,42 @@ onUnmounted(() => {
       </div>
     </section>
 
-    <section v-else-if="session.state === 'ENDED'" class="card" aria-live="polite">
-      <h2>{{ endings[session.endReason] }}</h2>
-      <p class="muted">会话编号 {{ session.id }}</p>
-      <RouterLink class="inline-link" :to="`/reports/${session.id}`">查看本场报告</RouterLink>
-      <ElButton @click="session = null">返回面试设置</ElButton>
+    <section v-else-if="session.state === 'ENDED'" class="surface formal-result" aria-live="polite">
+      <h1>{{ endings[session.endReason] }}</h1>
+      <p class="muted num">会话编号 {{ session.id }}</p>
+      <div class="formal-actions">
+        <RouterLink class="formal-report-link" :to="'/reports/' + session.id">查看本场报告</RouterLink>
+        <ElButton @click="session = null">返回面试设置</ElButton>
+      </div>
     </section>
 
-    <section v-else class="card" aria-label="当前问题">
-      <div class="progress">
-        <span>第 {{ session.index }} / {{ session.total }} 题 · {{ stages[session.turn.stage] }}{{ session.turn.followUp ? '追问' : '' }}</span>
-        <span>整场剩余 {{ Math.ceil(totalRemaining / 1000) }} 秒</span>
+    <section v-else class="surface formal-turn" aria-label="当前问题">
+      <div class="formal-progress">
+        <span class="tag green">{{ stages[session.turn.stage] }}{{ session.turn.followUp ? ' · 追问' : '' }}</span>
+        <span class="muted num">第 {{ session.index }} / {{ session.total }} 题</span>
       </div>
-      <h2>{{ session.turn.text || '开始录音后显示本题' }}</h2>
-      <p v-if="recording" class="recording" role="status">录音中 · 本题余 {{ Math.ceil(remaining / 1000) }} 秒</p>
-      <p v-else-if="busy" class="muted" role="status">正在处理，请稍候。</p>
-      <p v-else-if="pending?.blob?.size" class="muted">录音已保留在本页，可以重试上传。</p>
-      <p v-else-if="session.state === 'AUDIO_SAVED'" class="muted">录音已保存，可以重试转写。</p>
-      <p v-else-if="session.state === 'NEEDS_FOLLOW_UP'" class="muted">回答已保存，可以重试生成追问或进入下一题。</p>
-      <p v-else-if="['RECORDING', 'AWAITING_AUDIO'].includes(session.state)" class="muted">
+      <h1 class="formal-question">{{ session.turn.text || '开始录音后显示本题' }}</h1>
+
+      <div class="formal-timer num">
+        <span class="muted">本题剩余</span>
+        <strong class="formal-timer__seconds" :class="{ 'is-urgent': recording && turnSeconds <= 10 }">
+          {{ recording ? turnSeconds : '—' }}<span v-if="recording" class="formal-timer__unit"> 秒</span>
+        </strong>
+        <span class="muted">整场剩余 {{ totalClock }}</span>
+      </div>
+
+      <p v-if="recording" class="formal-recording" role="status">
+        <span class="formal-recording__dot" aria-hidden="true"></span>录音中
+      </p>
+      <p v-else-if="busy" class="formal-status" role="status">正在处理，请稍候。</p>
+      <p v-else-if="pending?.blob?.size" class="formal-status" role="status">录音已保留在本页，可以重试上传。</p>
+      <p v-else-if="session.state === 'AUDIO_SAVED'" class="formal-status" role="status">录音已保存，可以重试转写。</p>
+      <p v-else-if="session.state === 'NEEDS_FOLLOW_UP'" class="formal-status" role="status">回答已保存，可以重试生成追问或进入下一题。</p>
+      <p v-else-if="['RECORDING', 'AWAITING_AUDIO'].includes(session.state)" class="formal-status" role="status">
         本页没有可提交的录音。可刷新会话状态，或标记技术中断。
       </p>
-      <div class="actions">
+
+      <div class="formal-actions">
         <ElButton v-if="session.state === 'READY' && !pending" type="primary" :disabled="busy" @click="startRecording">
           开始录音
         </ElButton>
@@ -300,26 +334,3 @@ onUnmounted(() => {
     </section>
   </main>
 </template>
-
-<style scoped>
-.formal {
-  box-sizing: border-box;
-  max-width: 880px;
-  min-height: 60vh;
-  margin: 0 auto;
-  padding: 56px 24px;
-  color: #172330;
-  font: 16px/1.6 "Microsoft YaHei", system-ui, sans-serif;
-}
-header { margin-bottom: 28px; }
-header p, .muted { color: #526370; }
-h1 { margin: 0; line-height: 1.3; font-size: clamp(28px, 5vw, 42px); }
-h2 { margin: 20px 0; line-height: 1.5; font-size: 24px; }
-.card { padding: clamp(16px, 4vw, 26px); border: 1px solid var(--line, #d8e1e8); border-radius: 14px; margin-top: 14px; background: #fff; }
-.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0 22px; }
-label { display: grid; gap: 6px; }
-.progress, .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.progress { justify-content: space-between; font-size: 14px; color: #526370; }
-.actions :deep(.el-button + .el-button) { margin-left: 0; }
-.recording { color: #ac2525; font-variant-numeric: tabular-nums; }
-</style>

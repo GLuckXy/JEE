@@ -153,7 +153,7 @@ defineExpose({ stop })
 
 <style scoped>
 .voice-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.voice-controls span { color: #586f85; font-size: .85rem; }
-.voice-error { color: #a3312c; }
+.voice-controls > span { color: var(--muted); font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
+.voice-error { color: var(--danger); }
 audio { display: block; margin-top: 12px; max-width: 100%; }
 </style>

@@ -296,14 +296,14 @@ onBeforeUnmount(() => {
     </div>
     <p v-if="!session && !error">正在读取训练进度…</p>
     <template v-if="session">
-      <section id="interviewLive" class="panel">
+      <section id="interviewLive" class="panel surface">
         <div class="row-heading">
-          <div>
-            <span class="tag green">第 {{ session.position + 1 }} / {{ session.total }} 题</span>
-            <span class="tag orange">有效作答 {{ duration(clock) }}</span>
-            <span class="tag">{{ stateLabel(session.state) }}</span>
+          <div class="tags">
+            <span class="tag num">第 {{ session.position + 1 }} / {{ session.total }} 题</span>
+            <span class="tag num">有效作答 {{ duration(clock) }}</span>
+            <span class="tag" :class="{ green: session.state === 'ENDED', orange: active }">{{ stateLabel(session.state) }}</span>
           </div>
-          <span class="muted">{{ special ? '专项训练' : '普通训练' }} · 第 {{ session.roundNumber }} 轮</span>
+          <span class="muted num">{{ special ? '专项训练' : '普通训练' }} · 第 {{ session.roundNumber }} 轮</span>
         </div>
         <ElProgress :percentage="Math.round(tally / session.total * 100)" :format="() => tally + ' / ' + session.total" />
         <div class="bubble ai">
@@ -354,17 +354,17 @@ onBeforeUnmount(() => {
         </div>
         <p v-if="busy || status" role="status">{{ busy || status }}</p>
         <p v-if="draftError && active && answering" class="notice" role="alert">{{ draftError }}</p>
-        <p class="muted">暂停 {{ duration(session.pausedMs) }} · 识别等待 {{ duration(session.asrMs) }} · 评价等待 {{ duration(session.evaluationMs) }}</p>
+        <p class="muted num">暂停 {{ duration(session.pausedMs) }} · 识别等待 {{ duration(session.asrMs) }} · 评价等待 {{ duration(session.evaluationMs) }}</p>
       </section>
 
-      <section v-if="comparison" class="panel">
+      <section v-if="comparison" class="panel surface">
         <h2>前后回答对比</h2>
         <div class="grid two">
           <div class="bubble ai"><small>来源回答 · {{ session.sourceAnswer.questionTitle }}</small>{{ session.sourceAnswer.text }}</div>
           <div class="bubble me"><small>复练回答 · {{ comparison.questionTitle }}</small>{{ comparison.text }}</div>
         </div>
       </section>
-      <section v-if="records.length" class="panel">
+      <section v-if="records.length" class="panel surface">
         <h2>逐题反馈与作答记录</h2>
         <AnswerFeedback v-for="answer in records" :key="answer.id" :answer="answer" :evaluating="evaluating[answer.id]"
           @evaluate="evaluate" />

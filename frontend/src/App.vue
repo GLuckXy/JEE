@@ -34,9 +34,12 @@ onBeforeUnmount(() => window.removeEventListener('scroll', updateScrolled))
     <template v-else>
       <header class="site-nav" :class="{ scrolled }">
         <div class="nav-inner">
-          <router-link :to="auth.user?.role === 'ADMIN' ? '/admin/users' : '/resumes'" class="brand" aria-label="面序首页">
-            面序<span class="brand-mark" />
-          </router-link>
+          <div class="nav-brand">
+            <router-link :to="auth.user?.role === 'ADMIN' ? '/admin/users' : '/resumes'" class="brand" aria-label="面序首页">
+              面序<span class="brand-mark" />
+            </router-link>
+            <span class="status-pill formal-focus-status" role="status">正式模拟进行中</span>
+          </div>
 
           <nav v-if="auth.user" class="main-links" aria-label="主导航">
             <template v-if="auth.user.role === 'STUDENT'">

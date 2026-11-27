@@ -121,7 +121,7 @@ async function start(strategy) {
     <header class="page-heading training-heading"><div class="eyebrow">{{special ? 'FOCUSED PRACTICE' : 'PRACTICE ROOM'}}</div><h1>{{special ? '专项训练' : '普通训练'}}</h1><p class="muted">{{special ? '按知识点或难度选题，也可以针对以前的答题记录复练。' : '选择岗位和题目，按自己的节奏练习。'}}</p></header>
     <ElAlert v-if="error" :title="error" type="error" :closable="false" show-icon />
     <div class="grid two">
-      <section :id="special ? undefined : 'interviewSetup'" class="panel">
+      <section :id="special ? undefined : 'interviewSetup'" class="panel surface">
         <h2>训练配置</h2>
         <div class="field">
           <label for="training-role">面试岗位</label>
@@ -147,12 +147,12 @@ async function start(strategy) {
           </div>
         </template>
       </section>
-      <section v-if="!special" class="panel">
+      <section v-if="!special" class="panel surface">
         <h2>本次规则</h2>
         <p>每题可用文字或语音作答。提交后查看参考要点和改进建议，再选择重答、下一题或结束。</p>
         <p class="notice">暂停会保存当前题与草稿。语音识别和评价等待分别计时。</p>
       </section>
-      <section v-else class="panel">
+      <section v-else class="panel surface">
         <h2>薄弱点与推荐</h2>
         <p v-if="!loading && !specialties.recommendations.length">当前岗位暂无推荐。</p>
         <div v-for="item in specialties.recommendations" :key="item.questionId" class="recommendation">
@@ -163,7 +163,7 @@ async function start(strategy) {
       </section>
     </div>
 
-    <section v-if="special" class="panel">
+    <section v-if="special" class="panel surface">
       <h2>选择复练方式</h2>
       <div class="field">
         <label for="source-answer">来源回答或推荐题目</label>
@@ -178,7 +178,7 @@ async function start(strategy) {
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel surface">
       <h2>{{ special ? '可练题组' : '岗位题目' }}</h2>
       <p v-if="loading">正在加载题目…</p>
       <p v-else-if="!candidates.length">当前条件下没有可用题目。</p>
@@ -186,7 +186,7 @@ async function start(strategy) {
         <ElCheckbox :model-value="selected.includes(q.id)" :disabled="creating" @change="toggle(q.id, $event)">
           {{ q.title }}
         </ElCheckbox>
-        <div><span class="tag">{{ q.topic }}</span><span class="tag green">{{ q.type }}</span></div>
+        <div class="tags"><span class="tag">{{ q.topic }}</span><span class="tag green">{{ q.type }}</span></div>
         <p>{{ q.prompt }}</p>
       </div>
       <div class="actions">
@@ -198,7 +198,7 @@ async function start(strategy) {
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel surface">
       <h2>历史记录</h2>
       <p v-if="!history.length">完成或暂停一场训练后，可从这里查看记录。</p>
       <ul v-else class="history-list">
@@ -207,8 +207,8 @@ async function start(strategy) {
             {{ record.mode === 'SPECIAL' ? '专项训练' : '普通训练' }} ·
             {{ roles.find((role) => role.id === record.roleId)?.name || record.roleId }}
           </RouterLink>
-          <span>{{ new Date(record.createdAt).toLocaleString('zh-CN') }} · {{ record.total }} 题 · {{ duration(record.effectiveMs) }}</span>
-          <span class="tag green">{{ stateLabel(record.state) }}</span>
+          <span class="num">{{ new Date(record.createdAt).toLocaleString('zh-CN') }} · {{ record.total }} 题 · {{ duration(record.effectiveMs) }}</span>
+          <span class="tag" :class="{ green: record.state === 'ENDED', orange: record.state === 'ACTIVE' }">{{ stateLabel(record.state) }}</span>
         </li>
       </ul>
     </section>

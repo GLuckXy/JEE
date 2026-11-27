@@ -1,53 +1,190 @@
-/* Training module palette and layout from the discussion prototype. */
 .training-app {
-  --blue: #176959;
-  min-height: 60vh;
   display: grid;
-  gap: 16px;
   align-content: start;
+  gap: var(--s-4);
 }
-.training-app *, .training-app *::before, .training-app *::after { box-sizing: border-box; }
-.training-app .training-heading { margin-bottom: 5px; }
-.training-app h1 { font-size: 30px; margin: 0; }
-.training-app h2 { font-size: 19px; margin: 0 0 8px; }
-.training-app h3 { font-size: 16px; margin: 0 0 8px; }
-.training-app p { margin: 6px 0; }
-.training-app a:not(nav a) { color: var(--blue); }
-.training-app .top p, .training-app .muted, .training-app small { color: var(--muted); }
-.training-app .grid { display: grid; gap: 16px; }
-.training-app .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.training-app .panel { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: clamp(16px, 4vw, 24px); min-width: 0; }
-.training-app .notice { border-left: 4px solid #dc8530; background: #fff8ee; padding: 10px 13px; color: #79531d; }
-.training-app .field { margin: 14px 0; }
-.training-app .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-.training-app .el-select { width: 100%; max-width: 420px; }
-.training-app .actions, .training-app .row-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.training-app .actions { margin: 14px 0 4px; }
-.training-app .actions .el-button + .el-button, .training-app .voice-controls .el-button + .el-button { margin-left: 0; }
-.training-app .row-heading { justify-content: space-between; }
-.training-app .tag { display: inline-block; padding: 3px 8px; border-radius: 5px; background: #edf5fa; color: #205a8d; font-size: 12px; margin: 3px 5px 3px 0; }
-.training-app .tag.green { background: #e8f5ed; color: #226747; }
-.training-app .tag.orange { background: #fff1df; color: #8c4d14; }
-.training-app .recommendation, .training-app .question-row, .training-app .answer-record { padding: 13px 0; border-bottom: 1px solid #edf1f4; }
-.training-app summary { color: var(--blue); cursor: pointer; margin: 9px 0; }
-.training-app .history-list { margin: 0; padding: 0; list-style: none; }
-.training-app .history-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #edf1f4; }
-.training-app .bubble { padding: 13px 15px; border-radius: 10px; overflow-wrap: anywhere; white-space: pre-wrap; }
-.training-app .bubble small { display: block; margin-bottom: 4px; font-size: 12px; }
-.training-app .bubble.ai { background: #edf5fa; border-top-left-radius: 2px; }
-.training-app .bubble.me { background: #e8f5ed; border-top-right-radius: 2px; }
-.training-app #interviewLive > .bubble { margin: 14px 0; }
-.training-app .voice-panel { margin-top: 16px; padding: 14px; border: 1px solid var(--line); background: #f7fbfd; border-radius: 8px; }
-.training-app audio { max-width: 100%; }
-.training-app .feedback-list { display: grid; grid-template-columns: 105px minmax(0, 1fr); margin: 0; }
-.training-app .feedback-list dt, .training-app .feedback-list dd { margin: 0; padding: 8px 6px; border-bottom: 1px solid #edf1f4; }
-.training-app .feedback-list dt { font-weight: 700; }
-.training-app .feedback-list dd { overflow-wrap: anywhere; white-space: pre-wrap; }
-.training-app .feedback-list ul { margin: 0; padding-left: 20px; }
-.training-app .request-error .el-button { margin-top: 6px; }
+
+.training-app .training-heading,
+.training-app h1 {
+  margin: 0;
+}
+
+.training-app h2,
+.training-app h3 {
+  margin: 0 0 var(--s-2);
+}
+
+.training-app p {
+  margin-block: var(--s-2);
+}
+
+.training-app a,
+.training-app summary {
+  color: var(--green);
+}
+
+.training-app summary {
+  margin-block: var(--s-2);
+  cursor: pointer;
+}
+
+.training-app .grid {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.training-app .two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.training-app .panel {
+  min-width: 0;
+}
+
+.training-app .field {
+  margin-block: var(--s-4);
+}
+
+.training-app .field label {
+  display: block;
+  margin-bottom: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--fs-small);
+  font-weight: 500;
+}
+
+.training-app .el-select {
+  width: 100%;
+  max-width: 420px;
+}
+
+.training-app .actions,
+.training-app .row-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.training-app .actions {
+  margin-top: var(--s-4);
+}
+
+.training-app .el-button + .el-button {
+  margin-left: 0;
+}
+
+.training-app .row-heading {
+  justify-content: space-between;
+}
+
+.training-app #interviewLive > .el-progress {
+  margin-block: var(--s-4);
+}
+
+.training-app .recommendation,
+.training-app .question-row,
+.training-app .answer-record {
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.training-app .history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.training-app .history-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 52px;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.training-app .history-list li:hover {
+  background: var(--surface-sunken);
+}
+
+.training-app .bubble {
+  min-width: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.training-app .bubble small {
+  display: block;
+  margin-bottom: var(--s-1);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+}
+
+.training-app .bubble.ai {
+  border-start-start-radius: var(--s-1);
+  background: var(--surface-sunken);
+}
+
+.training-app .bubble.me {
+  border-start-end-radius: var(--s-1);
+  background: var(--green-50);
+}
+
+.training-app .voice-panel {
+  margin-top: var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+}
+
+.training-app audio {
+  max-width: 100%;
+}
+
+.training-app .feedback-list {
+  display: grid;
+  grid-template-columns: 105px minmax(0, 1fr);
+  margin: 0;
+}
+
+.training-app .feedback-list dt,
+.training-app .feedback-list dd {
+  margin: 0;
+  padding: var(--s-2);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.training-app .feedback-list dt {
+  font-weight: 600;
+}
+
+.training-app .feedback-list dd {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.training-app .feedback-list ul {
+  margin: 0;
+  padding-left: var(--s-5);
+}
+
+.training-app .feedback-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
 
 @media (max-width: 650px) {
-  .training-app .two { grid-template-columns: 1fr; }
-  .training-app .feedback-list { grid-template-columns: 85px minmax(0, 1fr); }
-  .training-app h1 { font-size: 24px; }
+  .training-app .two {
+    grid-template-columns: 1fr;
+  }
+
+  .training-app .feedback-list {
+    grid-template-columns: 85px minmax(0, 1fr);
+  }
 }
