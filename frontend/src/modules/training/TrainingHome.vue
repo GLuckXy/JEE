@@ -1,12 +1,17 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElAlert, ElButton, ElCheckbox, ElOption, ElSelect } from 'element-plus'
+import SegmentedControl from '../../components/SegmentedControl.vue'
 import { api, duration, message, sessionPath, stateLabel } from './api'
 
 const props = defineProps({ mode: { type: String, required: true } })
 const router = useRouter()
 const special = computed(() => props.mode === 'SPECIAL')
+const modeOptions = [
+  { value: '/training', label: '普通自选' },
+  { value: '/practice', label: '专项突破' },
+]
 const roles = ref([])
 const roleId = ref('')
 const questions = ref([])
@@ -17,10 +22,14 @@ const filterValue = ref('')
 const selected = ref([])
 const sourceKey = ref('')
 const sourceAnswers = ref([])
+const sourceOpen = ref(false)
+const sourceLoading = ref(false)
+const sourceError = ref('')
 const error = ref('')
 const loading = ref(true)
 const creating = ref(false)
 
+const unfinished = computed(() => history.value.filter(({ state }) => state === 'ACTIVE' || state === 'PAUSED').slice(0, 3))
 const candidates = computed(() => special.value
   ? questions.value.filter((q) => filterValue.value && q[filter.value] === filterValue.value)
   : questions.value)
@@ -32,6 +41,23 @@ const sources = computed(() => [
 ])
 
 let revision = 0
+let sourcesRevision = 0
+
+async function loadSources() {
+  const current = revision
+  if (!special.value || !sourceOpen.value || loading.value || current === sourcesRevision) return
+  sourcesRevision = current
+  sourceLoading.value = true
+  const records = await Promise.allSettled(history.value.filter((s) => s.roleId === roleId.value)
+    .slice(0, 15).map((s) => api.progress(s.id)))
+  if (current !== revision) return
+  sourceAnswers.value = records.flatMap((r) => r.status === 'fulfilled' ? r.value.answers : [])
+    .sort((a, b) => b.createdAt - a.createdAt)
+  if (records.some((r) => r.status === 'rejected')) sourceError.value = '部分历史回答加载失败，刷新页面可重试。'
+  if (!sourceKey.value) sourceKey.value = sources.value[0]?.key || ''
+  sourceLoading.value = false
+}
+
 async function loadRole() {
   const current = ++revision
   error.value = ''
@@ -39,6 +65,8 @@ async function loadRole() {
   selected.value = []
   sourceKey.value = ''
   sourceAnswers.value = []
+  sourceLoading.value = false
+  sourceError.value = ''
   questions.value = []
   specialties.value = { topics: [], types: [], recommendations: [] }
   try {
@@ -50,34 +78,35 @@ async function loadRole() {
       specialties.value = groups
       filter.value = 'topic'
       filterValue.value = groups.topics[0] || ''
-      const records = await Promise.allSettled(history.value.filter((s) => s.roleId === roleId.value)
-        .slice(0, 15).map((s) => api.progress(s.id)))
-      if (current !== revision) return
-      sourceAnswers.value = records.flatMap((r) => r.status === 'fulfilled' ? r.value.answers : [])
-        .sort((a, b) => b.createdAt - a.createdAt)
-      if (records.some((r) => r.status === 'rejected')) error.value = '部分历史回答加载失败，刷新页面可重试。'
-      sourceKey.value = sources.value[0]?.key || ''
     }
   } catch (e) {
     if (current === revision) error.value = message(e)
   } finally {
-    if (current === revision) loading.value = false
+    if (current === revision) {
+      loading.value = false
+      if (!error.value) void loadSources()
+    }
   }
 }
 
 onMounted(async () => {
+  const current = revision
   try {
     const [sessions, availableRoles] = await Promise.all([api.history(), api.roles()])
+    if (current !== revision) return
     history.value = sessions
     roles.value = availableRoles
     roleId.value = roles.value[0]?.id || ''
     if (!roleId.value) loading.value = false
   } catch (e) {
+    if (current !== revision) return
     error.value = message(e)
     loading.value = false
   }
 })
+onBeforeUnmount(() => { revision++ })
 watch(roleId, loadRole)
+watch(sourceOpen, loadSources)
 watch([filter, filterValue], () => { selected.value = [] })
 
 function recommend(item) {
@@ -118,9 +147,17 @@ async function start(strategy) {
 
 <template>
   <main :id="special ? 'practice' : 'interview'" class="page-shell training-app page">
-    <header class="page-heading training-heading"><div class="eyebrow">训练</div><h1>{{special ? '专项训练' : '普通训练'}}</h1><p class="muted">{{special ? '按知识点或难度选题，也可以针对以前的答题记录复练。' : '选择岗位和题目，按自己的节奏练习。'}}</p></header>
+    <header class="page-heading training-heading heading-with-actions">
+      <div>
+        <div class="eyebrow">训练</div>
+        <h1>{{ special ? '专项训练' : '普通训练' }}</h1>
+        <p class="muted">{{ special ? '按知识点或难度选题，也可以针对以前的答题记录复练。' : '自选岗位和题目，用文字或语音作答，提交后查看反馈。' }}</p>
+      </div>
+      <SegmentedControl :model-value="special ? '/practice' : '/training'" :options="modeOptions" label="训练方式"
+        @update:model-value="router.push($event)" />
+    </header>
     <ElAlert v-if="error" :title="error" type="error" :closable="false" show-icon />
-    <div class="grid two">
+    <div :class="{ grid: special, two: special }">
       <section :id="special ? undefined : 'interviewSetup'" class="panel surface">
         <h2>训练配置</h2>
         <div class="field">
@@ -147,12 +184,7 @@ async function start(strategy) {
           </div>
         </template>
       </section>
-      <section v-if="!special" class="panel surface">
-        <h2>本次规则</h2>
-        <p>每题可用文字或语音作答。提交后查看参考要点和改进建议，再选择重答、下一题或结束。</p>
-        <p class="notice">暂停会保存当前题与草稿。语音识别和评价等待分别计时。</p>
-      </section>
-      <section v-else class="panel surface">
+      <section v-if="special" class="panel surface">
         <h2>薄弱点与推荐</h2>
         <p v-if="!loading && !specialties.recommendations.length">当前岗位暂无推荐。</p>
         <div v-for="item in specialties.recommendations" :key="item.questionId" class="recommendation">
@@ -163,20 +195,22 @@ async function start(strategy) {
       </section>
     </div>
 
-    <section v-if="special" class="panel surface">
-      <h2>选择复练方式</h2>
+    <details v-if="special" class="panel surface training-repractice" @toggle="sourceOpen = $event.currentTarget.open">
+      <summary>按错题复练</summary>
+      <p v-if="sourceLoading" role="status">正在加载历史回答…</p>
+      <ElAlert v-if="sourceError" :title="sourceError" type="warning" :closable="false" show-icon />
       <div class="field">
         <label for="source-answer">来源回答或推荐题目</label>
-        <ElSelect id="source-answer" v-model="sourceKey" :disabled="loading || creating || !sources.length"
+        <ElSelect id="source-answer" v-model="sourceKey" :disabled="loading || sourceLoading || creating || !sources.length"
           placeholder="当前岗位暂无复练来源">
           <ElOption v-for="source in sources" :key="source.key" :label="source.title" :value="source.key" />
         </ElSelect>
       </div>
       <div class="actions">
-        <ElButton type="success" :disabled="loading || creating || !sourceKey" @click="start('ORIGINAL')">重答原题</ElButton>
-        <ElButton :disabled="loading || creating || !sourceKey" @click="start('SIMILAR')">练同知识点新题</ElButton>
+        <ElButton type="primary" :disabled="loading || sourceLoading || creating || !sourceKey" @click="start('ORIGINAL')">重答原题</ElButton>
+        <ElButton :disabled="loading || sourceLoading || creating || !sourceKey" @click="start('SIMILAR')">练同知识点新题</ElButton>
       </div>
-    </section>
+    </details>
 
     <section class="panel surface">
       <h2>{{ special ? '可练题组' : '岗位题目' }}</h2>
@@ -198,17 +232,20 @@ async function start(strategy) {
       </div>
     </section>
 
-    <section class="panel surface">
-      <h2>历史记录</h2>
-      <p v-if="!history.length">完成或暂停一场训练后，可从这里查看记录。</p>
+    <section class="panel surface training-history" aria-labelledby="training-history-title">
+      <div class="row-heading">
+        <h2 id="training-history-title">继续训练</h2>
+        <RouterLink class="inline-link" to="/reports">查看全部历史与报告 →</RouterLink>
+      </div>
+      <p v-if="!unfinished.length" class="muted">暂无进行中或已暂停的训练。</p>
       <ul v-else class="history-list">
-        <li v-for="record in history" :key="record.id">
+        <li v-for="record in unfinished" :key="record.id">
           <RouterLink :to="sessionPath(record.mode, record.id)">
             {{ record.mode === 'SPECIAL' ? '专项训练' : '普通训练' }} ·
             {{ roles.find((role) => role.id === record.roleId)?.name || record.roleId }}
           </RouterLink>
           <span class="num">{{ new Date(record.createdAt).toLocaleString('zh-CN') }} · {{ record.total }} 题 · {{ duration(record.effectiveMs) }}</span>
-          <span class="tag" :class="{ green: record.state === 'ENDED', orange: record.state === 'ACTIVE' }">{{ stateLabel(record.state) }}</span>
+          <span class="tag" :class="{ orange: record.state === 'ACTIVE' }">{{ stateLabel(record.state) }}</span>
         </li>
       </ul>
     </section>

@@ -7,7 +7,7 @@ import {showError,TOKEN_KEY} from './api'
 const auth=useAuth(),route=useRoute(),router=useRouter(),ready=ref(false),startupError=ref(false)
 const studentLinks = [
   [['/resumes', '我的简历'], ['/projects', '项目资料'], ['/demos', '典型示范']],
-  [['/training', '普通训练'], ['/practice', '专项训练'], ['/formal', '正式模拟']],
+  [['/training', '模拟训练'], ['/formal', '正式模拟']],
   [['/reports', '报告与历史']],
 ]
 const scrolled = ref(false)
@@ -49,7 +49,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', updateScrolled))
                   v-for="[path, label] in group"
                   :key="path"
                   :to="path"
-                  :class="{ 'router-link-active': route.path.startsWith(path + '/') }"
+                  :class="{ 'router-link-active': route.meta.navigationPath === path || route.path.startsWith(path + '/') }"
                 >
                   {{ label }}
                 </router-link>
