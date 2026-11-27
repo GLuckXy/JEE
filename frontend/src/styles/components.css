@@ -864,15 +864,13 @@ html {
   background: var(--hairline-strong);
 }
 
-.nav-inner > .el-dropdown,
-.nav-auth {
+.nav-inner > .el-dropdown {
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
 }
 
-.user-menu,
-.nav-auth {
+.user-menu {
   display: inline-flex;
   align-items: center;
   min-height: var(--s-10);
@@ -906,13 +904,6 @@ html {
   color: var(--muted);
 }
 
-.nav-auth {
-  padding-inline: var(--s-3);
-  border: 1px solid var(--hairline-strong);
-  color: var(--green);
-}
-
-.nav-auth:hover,
 .user-menu:hover {
   background: var(--green-50);
 }

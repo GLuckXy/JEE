@@ -8,7 +8,7 @@ const auth=useAuth(),route=useRoute(),router=useRouter(),ready=ref(false),startu
 const studentLinks = [
   [['/resumes', '我的简历'], ['/projects', '项目资料'], ['/demos', '典型示范']],
   [['/training', '普通训练'], ['/practice', '专项训练'], ['/formal', '正式模拟']],
-  [['/reports', '报告与历史'], ['/profile', '个人资料']],
+  [['/reports', '报告与历史']],
 ]
 const scrolled = ref(false)
 const updateScrolled = () => { scrolled.value = window.scrollY > 4 }
@@ -58,7 +58,6 @@ onBeforeUnmount(() => window.removeEventListener('scroll', updateScrolled))
             <template v-else>
               <router-link to="/admin/users">账号管理</router-link>
               <router-link to="/admin/content">内容与规则</router-link>
-              <router-link to="/profile">个人资料</router-link>
             </template>
           </nav>
 
@@ -80,9 +79,6 @@ onBeforeUnmount(() => window.removeEventListener('scroll', updateScrolled))
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <router-link v-else :to="route.path === '/register' ? '/login' : '/register'" class="nav-auth">
-            {{ route.path === '/register' ? '已有账号？登录' : '创建学生账号 ↗' }}
-          </router-link>
         </div>
       </header>
 
