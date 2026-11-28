@@ -109,10 +109,22 @@ CONSTRAINT fk_audit_actor FOREIGN KEY (actor_id) REFERENCES sys_user(id),
 CONSTRAINT fk_audit_target FOREIGN KEY (target_id) REFERENCES sys_user(id)
 );
 
+CREATE TABLE operation_log (
+id VARCHAR(36) PRIMARY KEY,
+user_id VARCHAR(36) NOT NULL,
+action VARCHAR(64) NOT NULL,
+target_id VARCHAR(64),
+detail VARCHAR(512),
+created_at TIMESTAMP(6) NOT NULL,
+CONSTRAINT fk_oplog_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
+);
+
 CREATE INDEX idx_session_user ON auth_session(user_id,expires_at);
 CREATE INDEX idx_resume_user_created ON resume(user_id,created_at,id);
 CREATE INDEX idx_file_owner_biz ON file_object(owner_id,biz_type,biz_id);
 CREATE INDEX idx_file_storage_status ON file_object(storage_status,created_at);
 CREATE INDEX idx_project_resume ON resume_project(resume_id,version_id,sort_no);
 CREATE INDEX idx_audit_target ON user_audit_log(target_id,created_at);
+CREATE INDEX idx_oplog_user_time ON operation_log(user_id,created_at);
+CREATE INDEX idx_oplog_action_time ON operation_log(action,created_at);
 

@@ -48,12 +48,13 @@ public class ReportService {
     private final ReportAggregator aggregator;
     private final DimensionWeightParser weights;
     private final TrainingService training;
+    private final com.aiinterview.logging.service.OperationLogService logs;
     private final TransactionTemplate transactions;
     private final List<ReentrantLock> locks = IntStream.range(0, 64).mapToObj(index -> new ReentrantLock()).toList();
 
     public ReportService(ReportInputFacade inputs, ReportStore store, EvaluationRules rules, JsonCodec json, RuleBasedEvaluator ruleEvaluator,
                          AiEvaluationClient ai, ReportAggregator aggregator, DimensionWeightParser weights, TrainingService training,
-                         PlatformTransactionManager manager) {
+                         com.aiinterview.logging.service.OperationLogService logs, PlatformTransactionManager manager) {
         this.inputs = inputs;
         this.store = store;
         this.rules = rules;
@@ -63,6 +64,7 @@ public class ReportService {
         this.aggregator = aggregator;
         this.weights = weights;
         this.training = training;
+        this.logs = logs;
         transactions = new TransactionTemplate(manager);
     }
 
@@ -88,6 +90,7 @@ public class ReportService {
                     var results = input.answers().stream().map(answer -> evaluate(answer, dimensionWeights)).toList();
                     var summary = summarize(input, results, dimensionWeights);
                     transactions.executeWithoutResult(transaction -> store.save(user, session, "COMPLETED", rule, summary, results));
+                    logs.record(user, "REPORT_GENERATE", session, null);
                 } catch (RuntimeException error) {
                     log.warn("Report generation failed; type={}", error.getClass().getSimpleName());
                     transactions.executeWithoutResult(transaction -> store.save(user, session, "FAILED", null, null, List.of()));

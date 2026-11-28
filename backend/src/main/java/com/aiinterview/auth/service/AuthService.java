@@ -25,12 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
     private final UserMapper users;
     private final AuthSessionMapper sessions;
+    private final com.aiinterview.logging.service.OperationLogService logs;
     private final PasswordEncoder passwords;
     private final JwtEncoder encoder;
     private final AppProperties properties;
     private final String dummyHash;
-    public AuthService(UserMapper users, AuthSessionMapper sessions, PasswordEncoder passwords, JwtEncoder encoder, AppProperties properties) {
-        this.users=users; this.sessions=sessions; this.passwords=passwords; this.encoder=encoder; this.properties=properties;
+    public AuthService(UserMapper users, AuthSessionMapper sessions, com.aiinterview.logging.service.OperationLogService logs, PasswordEncoder passwords, JwtEncoder encoder, AppProperties properties) {
+        this.users=users; this.sessions=sessions; this.logs=logs; this.passwords=passwords; this.encoder=encoder; this.properties=properties;
         this.dummyHash=passwords.encode(Values.id());
     }
     public static void validatePasswordBytes(String password) {
@@ -47,6 +48,7 @@ public class AuthService {
         try { users.insert(user); } catch (DuplicateKeyException e) {
             throw BusinessException.conflict("ACCOUNT_ALREADY_EXISTS", "账号已存在");
         }
+        logs.record(user.id,"AUTH_REGISTER",user.id,null);
         return UserView.of(user);
     }
     @Transactional
@@ -60,6 +62,7 @@ public class AuthService {
         AuthSession session=new AuthSession(); session.id=Values.id(); session.userId=user.id;
         session.createdAt=LocalDateTime.ofInstant(now, ZoneOffset.UTC); session.expiresAt=LocalDateTime.ofInstant(expires,ZoneOffset.UTC);
         sessions.insert(session);
+        logs.record(user.id,"AUTH_LOGIN",session.id,null);
         JwtClaimsSet claims=JwtClaimsSet.builder().issuer("ai-interview").subject(user.id).id(session.id).issuedAt(now).expiresAt(expires).build();
         String token=encoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims)).getTokenValue();
         return new TokenResult(token, "Bearer", properties.tokenTtl().toSeconds(), UserView.of(user));
@@ -68,6 +71,7 @@ public class AuthService {
     public void logout(CurrentUser user) {
         sessions.update(null, new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<AuthSession>()
                 .eq("id", user.sessionId()).eq("user_id", user.id()).set("revoked_at", Values.now()));
+        logs.record(user.id(),"AUTH_LOGOUT",user.sessionId(),null);
     }
     public record TokenResult(String accessToken, String tokenType, long expiresIn, UserView user) {}
 }

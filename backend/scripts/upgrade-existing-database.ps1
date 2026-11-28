@@ -11,6 +11,7 @@ $migrations = [ordered]@{
     '005_training_voice.sql' = @('training_session', 'training_answer', 'voice_asset')
     '006_formal.sql' = @('fi_session', 'fi_audio')
     '007_report.sql' = @('rp_evaluation_rule', 'rp_report', 'rp_answer_evaluation', 'rp_retrain_link')
+    '008_operation_log.sql' = @('operation_log')
 }
 $moduleTables = @($migrations.Values | ForEach-Object { $_ })
 $statements = foreach ($migration in $migrations.GetEnumerator()) {
@@ -32,7 +33,7 @@ $statements = foreach ($migration in $migrations.GetEnumerator()) {
 if ($PasswordDialog) {
     Add-Type -AssemblyName System.Windows.Forms
     $dialog = [Windows.Forms.Form]::new()
-    $dialog.Text = 'AI Interview - MySQL migration 004-007'
+    $dialog.Text = 'AI Interview - MySQL migration 004-008'
     $dialog.ClientSize = [Drawing.Size]::new(425, 124)
     $dialog.StartPosition = 'CenterScreen'
     $dialog.TopMost = $true
@@ -86,12 +87,12 @@ SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) FROM information_schema.S
     }
     $present = @($moduleTables | Where-Object { $_ -cin $objects })
     if ($present.Count -eq $moduleTables.Count) {
-        Write-Output 'All 14 integration table names already exist; no migration applied. Verify their layout before deployment.'
+        Write-Output 'All 15 integration table names already exist; no migration applied. Verify their layout before deployment.'
         return
     }
     if ($present.Count) { throw "Partial upgrade detected ($($present -join ', ')); reconcile before retrying. No changes applied." }
     Write-Output "Preflight passed: MySQL $version, 7 baseline tables and migration 003 verified."
-    if (-not $Apply) { Write-Output 'Check only: migrations 004-007 are pending.'; return }
+    if (-not $Apply) { Write-Output 'Check only: migrations 004-008 are pending.'; return }
 
     $backup = Join-Path $projectRoot "var/migration-backups/ai_interview-before-004-$([guid]::NewGuid()).sql"
     [void][IO.Directory]::CreateDirectory((Split-Path $backup -Parent))
@@ -107,7 +108,7 @@ SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) FROM information_schema.S
         $missing = @($moduleTables | Where-Object { $_ -cnotin $objects })
         if ($missing.Count) { throw "Missing integration tables: $($missing -join ', ')" }
     } catch { throw "Upgrade may be partial because MySQL DDL commits per statement. Do not retry blindly. $($_.Exception.Message)" }
-    Write-Output 'Migrations 004-007 applied. All 14 new tables verified; existing tables not written.'
+    Write-Output 'Migrations 004-008 applied. All 15 new tables verified; existing tables not written.'
 } finally {
     $password = $null
     if ($secret) { $secret.Dispose() }

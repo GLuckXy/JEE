@@ -29,6 +29,7 @@ MySQL 模式配置 `spring.sql.init.mode=never`。`backend/src/main/resources/sc
 | resume_version | 每次确认的不可变 JSON 载荷，resume_id + version 唯一 |
 | resume_project | 项目按确认版本保存，复合外键确保 version_id 与 resume_id 一致 |
 | user_audit_log | 管理员账号维护审计，不记录变更后的个人信息或密钥 |
+| operation_log | 业务操作日志：操作人、动作、目标与 UTC 时间；管理员分页查询，不记录密钥或个人资料载荷 |
 
 主键使用服务端生成的 UUID 字符串，统一 VARCHAR(36)。时间使用 UTC，所有数据库连接与外部模块应采用相同约定。账号在应用层统一转小写，正式数据库同时采用大小写不敏感的排序规则。
 
