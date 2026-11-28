@@ -239,25 +239,35 @@
 /* --------------------------------------------------------------------------
    4. 按钮：主次分明、行动可预期
    -------------------------------------------------------------------------- */
-.el-button--primary,
-.el-button--success {
+/* text / link 型按钮不带实心背景，否则深绿字叠深绿底会不可见 */
+.el-button--primary:not(.is-text):not(.is-link),
+.el-button--success:not(.is-text):not(.is-link) {
   border-color: transparent;
   background: var(--refine-brand-grad);
   font-weight: 600;
   box-shadow: 0 2px 8px -4px rgba(6, 78, 67, .55);
 }
 
-.el-button--primary:hover:not(.is-disabled),
-.el-button--success:hover:not(.is-disabled) {
+.el-button--primary:not(.is-text):not(.is-link):hover:not(.is-disabled),
+.el-button--success:not(.is-text):not(.is-link):hover:not(.is-disabled) {
   background: var(--green-hover);
   box-shadow: 0 6px 16px -6px rgba(6, 78, 67, .7);
   transform: translateY(-1px);
 }
 
-.el-button--primary:active:not(.is-disabled),
-.el-button--success:active:not(.is-disabled) {
+.el-button--primary:not(.is-text):not(.is-link):active:not(.is-disabled),
+.el-button--success:not(.is-text):not(.is-link):active:not(.is-disabled) {
   background: var(--green-press);
   transform: translateY(0);
+}
+
+.el-button--primary.is-text:hover:not(.is-disabled),
+.el-button--success.is-text:hover:not(.is-disabled),
+.el-button--primary.is-link:hover:not(.is-disabled),
+.el-button--success.is-link:hover:not(.is-disabled) {
+  background: var(--green-50);
+  box-shadow: none;
+  transform: none;
 }
 
 .el-button:not(.el-button--primary):not(.el-button--success):not(.is-text):not(.is-link) {
@@ -1033,5 +1043,538 @@
 @media (max-width: 760px) {
   .editor-grid > .edit-panel {
     align-self: auto;
+  }
+}
+
+/* ==========================================================================
+   18. 训练页主流程改造（第一优先级：主流程 / 第二优先级：产品感）
+   仅作用于 .training-app 及其后代，不影响其它页面。
+   ========================================================================== */
+
+/* --- 18.1 限制超宽屏内容宽度：题目区聚焦，避免视线横向漂移 --- */
+.training-app {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+}
+
+/* --- 18.2 配置区：压缩为单行 + 指标，去掉原来的大块留白 --- */
+.train-setup {
+  padding: var(--s-4) var(--s-5);
+}
+
+.setup-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-3) var(--s-5);
+}
+
+.setup-field {
+  flex: 0 1 220px;
+  min-width: 160px;
+}
+
+.setup-field label {
+  display: block;
+  margin-bottom: var(--s-1);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+
+.setup-line .setup-field .el-select {
+  width: 100%;
+  max-width: 260px;
+}
+
+.setup-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  margin-left: auto;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--refine-wash);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+}
+
+.setup-metrics b {
+  color: var(--green);
+  font-size: var(--fs-ui);
+  font-weight: 700;
+}
+
+.recommend-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.recommend-strip__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--green);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.recommend-strip__label::before {
+  content: "";
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--green);
+}
+
+.recommend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-1) var(--s-2) var(--s-1) var(--s-3);
+  border: 1px solid var(--green-100);
+  border-radius: var(--r-full);
+  background: var(--green-50);
+}
+
+.recommend-chip__text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.recommend-chip__text strong {
+  color: var(--ink);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.recommend-chip__text small {
+  color: var(--muted);
+  font-size: var(--fs-caption);
+}
+
+/* --- 18.3 合并筛选控件：一条紧凑工具条，去掉多余内边距 --- */
+.question-toolbar {
+  gap: var(--s-2);
+  margin: 0 0 var(--s-3);
+  padding: var(--s-2) var(--s-3);
+}
+
+.question-toolbar .toolbar-select {
+  flex: 0 0 168px;
+  width: 168px;
+}
+
+.question-toolbar .toolbar-select--short {
+  flex: 0 0 124px;
+  width: 124px;
+}
+
+.question-toolbar .toolbar-search {
+  flex: 1 1 190px;
+  width: auto;
+  min-width: 150px;
+  max-width: 280px;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* --- 18.4 按考察点分组 --- */
+.q-group + .q-group {
+  margin-top: var(--s-4);
+}
+
+.q-group__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.q-group__title {
+  color: var(--ink);
+  font-size: var(--fs-ui);
+  font-weight: 650;
+}
+
+.q-group__title::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 13px;
+  margin-right: var(--s-2);
+  border-radius: 2px;
+  background: var(--green);
+  vertical-align: -1px;
+}
+
+.q-group__meta {
+  color: var(--muted);
+  font-size: var(--fs-caption);
+}
+
+.q-group__head .el-button {
+  margin-left: auto;
+  font-size: var(--fs-caption);
+}
+
+/* --- 18.5 题目卡片三态：悬停 / 选中 / 禁用（+ 已练） --- */
+.question-card {
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  transition: border-color var(--dur-fast), background-color var(--dur-fast),
+              box-shadow var(--dur-fast), transform var(--dur-fast), opacity var(--dur-fast);
+}
+
+.question-card + .question-card {
+  margin-top: var(--s-2);
+}
+
+.question-card:hover:not(.is-disabled) {
+  border-color: color-mix(in srgb, var(--green) 32%, transparent);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+}
+
+.question-card.is-selected {
+  border-color: var(--green);
+  background: var(--green-50);
+  box-shadow: inset 3px 0 0 var(--green);
+}
+
+.question-card.is-selected:hover {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 var(--green), var(--shadow-card);
+}
+
+.question-card.is-disabled {
+  opacity: .52;
+  cursor: not-allowed;
+  filter: grayscale(.35);
+}
+
+.question-card.is-disabled:hover {
+  border-color: var(--hairline);
+  box-shadow: none;
+  transform: none;
+}
+
+.question-card.is-disabled .question-prompt {
+  opacity: .9;
+}
+
+.qc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
+}
+
+.qc-head .el-checkbox {
+  min-width: 0;
+  height: auto;
+  margin-right: 0;
+}
+
+.qc-head .el-checkbox__label {
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.qc-title {
+  color: var(--ink);
+  font-size: var(--fs-ui);
+  font-weight: 600;
+}
+
+.is-selected .qc-title {
+  color: var(--green);
+}
+
+.qc-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-caption);
+}
+
+.qc-practiced,
+.qc-new,
+.qc-time {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+.qc-practiced {
+  background: var(--green-50);
+  color: var(--green);
+  font-weight: 600;
+}
+
+.qc-new {
+  border: 1px dashed var(--hairline);
+  color: var(--muted);
+}
+
+.qc-time {
+  border: 1px solid var(--hairline);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.question-card .question-prompt {
+  margin-top: var(--s-2);
+  margin-bottom: 0;
+}
+
+/* --- 18.6 固定「已选题目 + 开始训练」操作区 --- */
+.train-actionbar {
+  position: static;
+  z-index: 9;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid color-mix(in srgb, var(--green) 22%, transparent);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-pop);
+}
+
+/* 仅在有已选题目时吸底：专项模式默认态不遮挡题组内容 */
+.train-actionbar.is-sticky {
+  position: sticky;
+  bottom: var(--s-3);
+}
+
+.ab-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-4);
+}
+
+.ab-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--fs-ui);
+}
+
+.ab-summary strong {
+  color: var(--green);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+}
+
+.ab-summary > span {
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.ab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.ab-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.ab-order__hint {
+  flex: none;
+  padding-top: var(--s-1);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+
+.ab-order__list {
+  display: flex;
+  flex: 1 1 420px;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.ab-order__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  max-width: 100%;
+  padding: 3px 6px 3px var(--s-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  font-size: var(--fs-caption);
+}
+
+.ab-order__index {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-full);
+  background: var(--green);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ab-order__title {
+  max-width: 170px;
+  overflow: hidden;
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ab-order__item button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+
+.ab-order__item button:hover:not(:disabled) {
+  background: var(--green-50);
+  color: var(--green);
+}
+
+.ab-order__item button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
+}
+
+.ab-order__item button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* --- 18.7 继续训练：空状态压缩为一行 --- */
+.training-history {
+  padding: var(--s-4) var(--s-5);
+}
+
+.history-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.history-empty__mark {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--green-100);
+  border-radius: var(--r-full);
+  background: var(--green-50);
+}
+
+/* --- 18.8 响应式 --- */
+/* 专项模式两列布局下，配置区改为两列字段网格，避免纵向堆叠过高 */
+.two .train-setup .setup-line {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2) var(--s-3);
+}
+
+.two .train-setup .setup-field {
+  min-width: 0;
+}
+
+.two .train-setup .setup-line .setup-field:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.two .train-setup .setup-metrics {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-left: 0;
+}
+
+@media (max-width: 900px) {
+  .two .train-setup .setup-line {
+    grid-template-columns: 1fr;
+  }
+  .two .train-setup .setup-line .setup-field:nth-child(3) {
+    grid-column: auto;
+  }
+  .setup-metrics {
+    width: 100%;
+    margin-left: 0;
+  }
+  .question-toolbar .toolbar-select,
+  .question-toolbar .toolbar-select--short,
+  .question-toolbar .toolbar-search {
+    flex: 1 1 140px;
+    width: auto;
+    max-width: none;
+  }
+  .toolbar-spacer {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .train-setup,
+  .training-history {
+    padding: var(--s-4);
+  }
+  .qc-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .train-actionbar {
+    padding: var(--s-3);
+  }
+  .ab-order__title {
+    max-width: 120px;
   }
 }
