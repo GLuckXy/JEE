@@ -90,6 +90,12 @@ onMounted(load)
             <DeleteResumeButton :resume="resume" compact @deleted="afterDelete" />
           </div>
         </article>
+        <button v-if="visible.length && visible.length < 3" type="button" class="resume-add-card" @click="uploadOpen=true">
+          <span class="resume-add-card__icon"><el-icon aria-hidden="true"><Upload /></el-icon></span>
+          <strong>再上传一份简历</strong>
+          <span class="fine-print">PDF / Word，最大 10 MB；每份简历可独立校对与确认。</span>
+          <span class="resume-add-card__cta">选择文件 <el-icon aria-hidden="true"><Right /></el-icon></span>
+        </button>
       </div>
 
       <el-empty v-else :description="records.length ? '本页暂无该状态的简历' : '还没有简历。从你的第一份经历开始。'">

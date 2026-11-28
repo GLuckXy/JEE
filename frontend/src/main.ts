@@ -7,6 +7,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/components.css'
 import './styles/pages.css'
+import './styles/refine.css'
 import App from './App.vue'
 import {router} from './router'
 createApp(App).use(createPinia()).use(router).use(ElementPlus,{locale:zhCn}).mount('#app')

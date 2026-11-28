@@ -8,6 +8,7 @@ import {dateTime,emptyProject,emptyExperience} from '../types'
 import type {Detail,Payload,ProjectFields,ResumeVersion} from '../types'
 import PayloadReadOnly from '../components/PayloadReadOnly.vue'
 import DeleteResumeButton from '../components/DeleteResumeButton.vue'
+import SegmentedControl from '../components/SegmentedControl.vue'
 import {mergeParsed,changes,clonePayload} from '../mergeParsed'
 const route=useRoute(),router=useRouter(),id=String(route.params.id)
 const detail=ref<Detail>(),payload=ref<Payload>(),loading=ref(true),error=ref(''),busy=ref(false),baseline=ref(''),sourceTab=ref('text'),pdfUrl=ref(''),historyOpen=ref(false),historyBusy=ref(false),history=ref<ResumeVersion[]>([]),activeVersion=ref<number>(),conflict=ref(false),downloadBusy=ref(false),analysisOpen=ref(false),mergeMode=ref<'fill'|'replace'>('fill'),deleted=ref(false)
@@ -15,10 +16,47 @@ const dirty=computed(()=>!!payload.value&&JSON.stringify(payload.value)!==baseli
 const candidate=computed(()=>detail.value?.rawParseResult?.extracted)
 const mergePreview=computed(()=>payload.value&&candidate.value?mergeMode.value==='replace'?{payload:clonePayload(candidate.value),skipped:[]}:mergeParsed(payload.value,candidate.value):undefined)
 const differences=computed(()=>payload.value&&mergePreview.value?changes(payload.value,mergePreview.value.payload):[])
-async function applyAnalysis(){if(!mergePreview.value||!differences.value.length)return;try{await ElMessageBox.confirm(mergeMode.value==='replace'?'将用解析候选替换当前全部草稿字段，包括非空内容。请先核对下方差异；此操作不会修改历史版本。':'将填入差异表中的空白字段及可确定的新条目，不覆盖已有文字。','应用解析结果',{confirmButtonText:mergeMode.value==='replace'?'确认替换草稿':'确认填入空白',cancelButtonText:'再检查一下',type:mergeMode.value==='replace'?'warning':'info'});payload.value=clonePayload(mergePreview.value.payload);analysisOpen.value=false;ElMessage.success('已填入页面，请校对后保存草稿')}catch(e){if(e!=='cancel'&&e!=='close')showError(e)}}
+async function applyAnalysis(){if(!mergePreview.value||!differences.value.length)return;try{await ElMessageBox.confirm(mergeMode.value==='replace'?'将用解析候选替换当前全部草稿字段，包括非空内容。请先核对下方差异；此操作不会修改历史版本。':'将填入差异表中的空白字段及可确定的新条目，不覆盖已有文字。','应用解析结果',{confirmButtonText:mergeMode.value==='replace'?'确认替换草稿':'确认填入空白',cancelButtonText:'再检查一下',type:mergeMode.value==='replace'?'warning':'info'});payload.value=clonePayload(mergePreview.value.payload);analysisOpen.value=false;activeSection.value='projects';ElMessage.success('已填入页面，请核对后保存草稿')}catch(e){if(e!=='cancel'&&e!=='close')showError(e)}}
 async function afterDelete(){deleted.value=true;baseline.value=JSON.stringify(payload.value);await router.replace('/resumes')}
 const selectedVersion=computed(()=>history.value.find(v=>v.version===activeVersion.value))
-const projectLabels={goal:'项目目标',responsibility:'本人职责',difficulty:'遇到的困难',solution:'解决过程',result:'结果与效果',improvement:'后续改进'} as const
+const projectGridLabels={goal:'项目目标',difficulty:'遇到的困难',solution:'解决过程',result:'结果与效果',improvement:'后续改进'} as const
+
+type SectionKey='skills'|'education'|'internships'|'projects'
+const editorSections=[{value:'skills',label:'专业技能'},{value:'education',label:'教育经历'},{value:'internships',label:'实习经历'},{value:'projects',label:'项目经历'}] as const
+const activeSection=ref<SectionKey>('skills')
+const sectionHint=computed<Record<SectionKey,string>>(()=>{
+  const p=payload.value
+  if(!p)return{skills:'',education:'',internships:'',projects:''}
+  return{
+    skills:`已填 ${p.skills.length} 项技能`,
+    education:`${p.education.length} 条经历`,
+    internships:`${p.internships.length} 条经历`,
+    projects:`已填 ${p.projects.filter(projectFilled).length} / ${p.projects.length} 个项目`
+  }
+})
+const sectionProgress=computed(()=>{
+  const p=payload.value
+  if(!p)return[] as {key:SectionKey,label:string,text:string,filled:boolean}[]
+  return[
+    {key:'skills' as const,label:'专业技能',text:`${p.skills.length} 项技能`,filled:p.skills.length>0},
+    {key:'education' as const,label:'教育经历',text:`${p.education.length} 条经历`,filled:p.education.length>0},
+    {key:'internships' as const,label:'实习经历',text:`${p.internships.length} 条经历`,filled:p.internships.length>0},
+    {key:'projects' as const,label:'项目经历',text:`${p.projects.filter(projectFilled).length} / ${p.projects.length} 个项目`,filled:p.projects.length>0&&p.projects.every(projectFilled)},
+  ]
+})
+const filledSections=computed(()=>sectionProgress.value.filter(item=>item.filled).length)
+const nextStepHint=computed(()=>{
+  if(!detail.value)return''
+  if(dirty.value)return'有未保存的修改，先点「保存草稿」，再确认简历。'
+  if(detail.value.summary.confirmStatus==='CONFIRMED')return'简历已确认，下一步可选择用于面试的项目。'
+  return'保存并确认简历后，即可选择项目开始模拟面试。'
+})
+function jumpSection(key:SectionKey){activeSection.value=key}
+function gotoSection(delta:number){
+  const index=editorSections.findIndex(section=>section.value===activeSection.value)
+  const next=editorSections[index+delta]
+  if(next)activeSection.value=next.value
+}
 const projectTechPreviewCount = 3
 const projectSelection = shallowRef<ProjectFields | null>()
 const expandedProject = computed(() => {
@@ -54,7 +92,6 @@ async function download(){downloadBusy.value=true;try{await downloadFile(detail.
 async function versions(){historyOpen.value=true;historyBusy.value=true;try{history.value=await api.versions(id);activeVersion.value=history.value[0]?.version}catch(e){showError(e)}finally{historyBusy.value=false}}
 async function reload(){try{if(dirty.value)await ElMessageBox.confirm('重新加载会放弃页面上未保存的修改。','重新加载',{confirmButtonText:'放弃修改并加载',cancelButtonText:'保留修改'});await load()}catch(e){if(e!=='cancel'&&e!=='close')showError(e)}}
 async function removeDraftItem(section:'projects'|'education'|'internships',index:number){try{await ElMessageBox.confirm('将此条目从当前草稿中移除？保存并重新确认前，不影响历史版本。','移除草稿条目',{confirmButtonText:'移除',cancelButtonText:'保留'});payload.value?.[section].splice(index,1)}catch{/* Cancel keeps draft intact. */}}
-function jumpTo(section:string){document.getElementById(`edit-${section}`)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'})}
 function beforeUnload(event:BeforeUnloadEvent){if(dirty.value||busy.value){event.preventDefault();event.returnValue=''}}
 onBeforeRouteLeave(async()=>{if(deleted.value||!sessionStorage.getItem(TOKEN_KEY))return true;if(busy.value){ElMessage.warning('操作进行中，请稍候');return false}if(!dirty.value)return true;try{await ElMessageBox.confirm('你有尚未保存的修改，离开后将不会保留。','离开校对页',{confirmButtonText:'放弃修改并离开',cancelButtonText:'继续编辑'});return true}catch{return false}})
 onMounted(()=>{void load();window.addEventListener('beforeunload',beforeUnload)})
@@ -131,17 +168,24 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
             <h2>校对与补充</h2>
           </div>
           <p class="fine-print editor-intro">可选经历允许留空。项目名称与本人职责为确认必填项。</p>
-          <nav class="editor-jumps" aria-label="跳转到编辑内容">
-            <el-button v-for="item in [{id:'skills',label:'专业技能'},{id:'education',label:'教育经历'},{id:'internships',label:'实习经历'},{id:'projects',label:'项目经历'}]" :key="item.id" text @click="jumpTo(item.id)">{{item.label}}</el-button>
-          </nav>
+          <div class="editor-section-nav">
+            <SegmentedControl v-model="activeSection" :options="editorSections" label="切换校对分区"/>
+            <div class="section-nav-side">
+              <span class="section-hint num" role="status">{{ sectionHint[activeSection] }}</span>
+              <el-button-group>
+                <el-button size="small" :disabled="activeSection==='skills'" @click="gotoSection(-1)">上一分区</el-button>
+                <el-button size="small" :disabled="activeSection==='projects'" @click="gotoSection(1)">下一分区</el-button>
+              </el-button-group>
+            </div>
+          </div>
           <el-form label-position="top" :disabled="busy" size="large">
-            <section id="edit-skills" class="form-section">
+            <section id="edit-skills" v-show="activeSection==='skills'" class="form-section">
               <h3 class="editor-section-title"><span class="editor-section-number num" aria-hidden="true">01</span>专业技能</h3>
               <el-select v-model="payload.skills" multiple filterable allow-create default-first-option :reserve-keyword="false" placeholder="输入技能并按回车添加，最多100项" :multiple-limit="100" class="full-width">
                 <el-option v-for="skill in payload.skills" :key="skill" :label="skill" :value="skill"/>
               </el-select>
             </section>
-            <section v-for="(section,index) in [{key:'education' as const,label:'教育经历'},{key:'internships' as const,label:'实习经历'}]" :key="section.key" :id="`edit-${section.key}`" class="form-section">
+            <section v-for="(section,index) in [{key:'education' as const,label:'教育经历'},{key:'internships' as const,label:'实习经历'}]" :key="section.key" :id="`edit-${section.key}`" v-show="activeSection===section.key" class="form-section">
               <div class="section-head small-head">
                 <h3 class="editor-section-title"><span class="editor-section-number num" aria-hidden="true">0{{index+2}}</span>{{section.label}} <span class="muted optional">选填</span></h3>
                 <el-button text :icon="Plus" :disabled="payload[section.key].length>=30" @click="payload[section.key].push(emptyExperience())">添加</el-button>
@@ -168,7 +212,7 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
                 </el-form-item>
               </div>
             </section>
-            <section id="edit-projects" class="form-section">
+            <section id="edit-projects" v-show="activeSection==='projects'" class="form-section">
               <div class="section-head small-head">
                 <h3 class="editor-section-title"><span class="editor-section-number num" aria-hidden="true">04</span>项目经历 <span class="required-note">确认时至少一项</span></h3>
                 <el-button text :icon="Plus" :disabled="payload.projects.length>=30" @click="addProject">添加项目</el-button>
@@ -198,9 +242,14 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
                     <el-form-item label="项目名称 *">
                       <el-input v-model="project.name" maxlength="256" placeholder="用准确的名字描述你的项目"/>
                     </el-form-item>
-                    <el-form-item v-for="(label,key) in projectLabels" :key="key" :label="label+(key==='responsibility'?' *':'')">
-                      <el-input v-model="project[key]" type="textarea" :rows="key==='responsibility'?3:2" maxlength="5000" show-word-limit :placeholder="key==='responsibility'?'写清你本人负责的部分，不要代填团队其他人的工作':'按真实经历填写，没有可留空'"/>
+                    <el-form-item label="本人职责 *">
+                      <el-input v-model="project.responsibility" type="textarea" :rows="3" maxlength="5000" show-word-limit placeholder="写清你本人负责的部分，不要代填团队其他人的工作"/>
                     </el-form-item>
+                    <div class="project-fields-grid">
+                      <el-form-item v-for="(label,key) in projectGridLabels" :key="key" :label="label">
+                        <el-input v-model="project[key]" type="textarea" :rows="2" maxlength="5000" show-word-limit placeholder="按真实经历填写，没有可留空"/>
+                      </el-form-item>
+                    </div>
                     <el-form-item label="技术栈">
                       <el-select v-model="project.techStack" multiple filterable allow-create default-first-option :reserve-keyword="false" :multiple-limit="100" placeholder="输入技术并回车添加" class="full-width">
                         <el-option v-for="tech in project.techStack" :key="tech" :value="tech" :label="tech"/>
@@ -211,6 +260,31 @@ onBeforeUnmount(()=>{window.removeEventListener('beforeunload',beforeUnload);if(
               </div>
             </section>
           </el-form>
+          <aside class="editor-guide" aria-label="校对进度与下一步">
+            <div class="editor-guide__head">
+              <h3>校对进度</h3>
+              <span class="editor-guide__count num" role="status">{{ filledSections }} / 4 已填写</span>
+            </div>
+            <ul class="editor-guide__list">
+              <li v-for="item in sectionProgress" :key="item.key">
+                <button type="button" class="editor-guide__row"
+                  :class="{ 'is-active': activeSection === item.key }"
+                  :aria-current="activeSection === item.key ? 'step' : undefined"
+                  @click="jumpSection(item.key)">
+                  <span class="editor-guide__dot" :class="{ 'is-filled': item.filled }">
+                    <el-icon v-if="item.filled" aria-hidden="true"><Check/></el-icon>
+                  </span>
+                  <span class="editor-guide__label">{{ item.label }}</span>
+                  <span class="editor-guide__text num">{{ item.text }}</span>
+                  <el-icon class="editor-guide__arrow" aria-hidden="true"><Right/></el-icon>
+                </button>
+              </li>
+            </ul>
+            <p class="editor-guide__next">
+              <span class="editor-guide__next-mark" aria-hidden="true">→</span>
+              <span>{{ nextStepHint }}</span>
+            </p>
+          </aside>
         </section>
       </div>
       <div class="editor-actions">

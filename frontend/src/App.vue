@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import {onMounted,onBeforeUnmount,ref} from 'vue'
+import type {Component} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {ElMessage,ElMessageBox} from 'element-plus'
+import {Document,FolderOpened,Collection,EditPen,VideoCamera,DataAnalysis,User,Files} from '@element-plus/icons-vue'
 import {useAuth} from './stores/auth'
 import {showError,TOKEN_KEY} from './api'
 const auth=useAuth(),route=useRoute(),router=useRouter(),ready=ref(false),startupError=ref(false)
-const studentLinks = [
-  [['/resumes', '我的简历'], ['/projects', '项目资料'], ['/demos', '典型示范']],
-  [['/training', '模拟训练'], ['/formal', '正式模拟']],
-  [['/reports', '报告与历史']],
+type NavLink={path:string;label:string;icon:Component}
+const studentGroups:NavLink[][]=[
+  [{path:'/resumes',label:'我的简历',icon:Document},{path:'/projects',label:'项目资料',icon:FolderOpened},{path:'/demos',label:'典型示范',icon:Collection}],
+  [{path:'/training',label:'模拟训练',icon:EditPen},{path:'/formal',label:'正式模拟',icon:VideoCamera}],
+  [{path:'/reports',label:'报告与历史',icon:DataAnalysis}],
 ]
+const adminLinks:NavLink[]=[{path:'/admin/users',label:'账号管理',icon:User},{path:'/admin/content',label:'内容与规则',icon:Files}]
 const scrolled = ref(false)
 const updateScrolled = () => { scrolled.value = window.scrollY > 4 }
 async function initialize(){startupError.value=false;try{await auth.restore();ready.value=true;if(auth.user&&route.meta.public)await router.replace(auth.user.role==='ADMIN'?'/admin/users':'/resumes')}catch(e){if(!sessionStorage.getItem(TOKEN_KEY)){auth.clear();ready.value=true;await router.replace('/login')}else{startupError.value=true;showError(e)}}}
@@ -38,26 +42,30 @@ onBeforeUnmount(() => window.removeEventListener('scroll', updateScrolled))
             <router-link :to="auth.user?.role === 'ADMIN' ? '/admin/users' : '/resumes'" class="brand" aria-label="面序首页">
               面序<span class="brand-mark" />
             </router-link>
+            <span class="brand-sub">AI 模拟面试</span>
             <span class="status-pill formal-focus-status" role="status">正式模拟进行中</span>
           </div>
 
           <nav v-if="auth.user" class="main-links" aria-label="主导航">
             <template v-if="auth.user.role === 'STUDENT'">
-              <template v-for="(group, index) in studentLinks" :key="group[0][0]">
+              <template v-for="(group, index) in studentGroups" :key="group[0].path">
                 <span v-if="index > 0" class="nav-divider" aria-hidden="true" />
                 <router-link
-                  v-for="[path, label] in group"
-                  :key="path"
-                  :to="path"
-                  :class="{ 'router-link-active': route.meta.navigationPath === path || route.path.startsWith(path + '/') }"
+                  v-for="link in group"
+                  :key="link.path"
+                  :to="link.path"
+                  :class="{ 'router-link-active': route.meta.navigationPath === link.path || route.path.startsWith(link.path + '/') }"
                 >
-                  {{ label }}
+                  <el-icon class="nav-icon" aria-hidden="true"><component :is="link.icon" /></el-icon>
+                  {{ link.label }}
                 </router-link>
               </template>
             </template>
             <template v-else>
-              <router-link to="/admin/users">账号管理</router-link>
-              <router-link to="/admin/content">内容与规则</router-link>
+              <router-link v-for="link in adminLinks" :key="link.path" :to="link.path">
+                <el-icon class="nav-icon" aria-hidden="true"><component :is="link.icon" /></el-icon>
+                {{ link.label }}
+              </router-link>
             </template>
           </nav>
 

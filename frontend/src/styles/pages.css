@@ -2058,3 +2058,18 @@
   font-size: var(--fs-caption);
   font-weight: 500;
 }
+
+/* —— 校对工作台分步编辑（UX 优化演示：ui-redesign 沙箱原型） —— */
+.editor-section-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 20px;padding:12px 14px;border:1px solid var(--line,var(--border,#e3e8e3));border-radius:12px;background:color-mix(in srgb,var(--accent,#0e5c4a) 3%,transparent)}
+.section-nav-side{display:flex;align-items:center;gap:12px}
+.section-hint{color:var(--ink-soft,var(--muted,#5f7269));font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.project-fields-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}
+@media (max-width:900px){.project-fields-grid{grid-template-columns:1fr}}
+
+/* —— 训练选题工具条与题干折叠（UX 优化演示：ui-redesign 沙箱原型） —— */
+.question-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line,var(--border,#e3e8e3));border-radius:10px;background:color-mix(in srgb,var(--accent,#0e5c4a) 3%,transparent)}
+.toolbar-select{width:170px}
+.toolbar-select--short{width:130px}
+.toolbar-search{width:220px}
+.question-prompt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;cursor:pointer;color:var(--ink-soft,var(--muted,#5f7269))}
+.question-prompt.open{display:block}

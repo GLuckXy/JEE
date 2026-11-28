@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElAlert, ElButton, ElCheckbox, ElOption, ElSelect } from 'element-plus'
+import { ElAlert, ElButton, ElCheckbox, ElInput, ElOption, ElSelect } from 'element-plus'
 import SegmentedControl from '../../components/SegmentedControl.vue'
 import { api, duration, message, sessionPath, stateLabel } from './api'
 
@@ -28,11 +28,34 @@ const sourceError = ref('')
 const error = ref('')
 const loading = ref(true)
 const creating = ref(false)
+const search = ref('')
+const topicFilter = ref('')
+const typeFilter = ref('')
+const showAll = ref(false)
+const expandedPrompts = ref([])
+
+const previewCount = 6
+const typeLabels = { EASY: '基础', MEDIUM: '进阶', HARD: '挑战' }
+const typeLabel = (value) => typeLabels[value] || value
+const topicOptions = computed(() => [...new Set(questions.value.map((q) => q.topic))])
+const typeOptions = computed(() => [...new Set(questions.value.map((q) => q.type))])
 
 const unfinished = computed(() => history.value.filter(({ state }) => state === 'ACTIVE' || state === 'PAUSED').slice(0, 3))
 const candidates = computed(() => special.value
   ? questions.value.filter((q) => filterValue.value && q[filter.value] === filterValue.value)
   : questions.value)
+const filteredCandidates = computed(() => {
+  let list = candidates.value
+  if (!special.value) {
+    if (topicFilter.value) list = list.filter((q) => q.topic === topicFilter.value)
+    if (typeFilter.value) list = list.filter((q) => q.type === typeFilter.value)
+  }
+  const keyword = search.value.trim().toLowerCase()
+  if (keyword) list = list.filter((q) => q.title.toLowerCase().includes(keyword) || q.prompt.toLowerCase().includes(keyword))
+  return list
+})
+const visibleCandidates = computed(() => showAll.value ? filteredCandidates.value : filteredCandidates.value.slice(0, previewCount))
+const hiddenCount = computed(() => filteredCandidates.value.length - visibleCandidates.value.length)
 const sources = computed(() => [
   ...sourceAnswers.value.map((a) => ({ key: a.id, questionId: a.questionId, answerId: a.id,
     title: a.questionTitle + ' · 第 ' + a.roundNumber + ' 轮 · ' + new Date(a.createdAt).toLocaleString('zh-CN') })),
@@ -69,6 +92,11 @@ async function loadRole() {
   sourceError.value = ''
   questions.value = []
   specialties.value = { topics: [], types: [], recommendations: [] }
+  search.value = ''
+  topicFilter.value = ''
+  typeFilter.value = ''
+  showAll.value = false
+  expandedPrompts.value = []
   try {
     const [items, groups] = await Promise.all([api.questions(roleId.value),
       special.value ? api.specialties(roleId.value) : null])
@@ -123,6 +151,16 @@ function toggle(id, checked) {
   selected.value = checked ? [...selected.value, id] : selected.value.filter((value) => value !== id)
 }
 
+function togglePrompt(id) {
+  const index = expandedPrompts.value.indexOf(id)
+  if (index === -1) expandedPrompts.value.push(id)
+  else expandedPrompts.value.splice(index, 1)
+}
+
+function clearSelected() {
+  selected.value = []
+}
+
 async function start(strategy) {
   if (creating.value) return
   creating.value = true
@@ -158,31 +196,38 @@ async function start(strategy) {
     </header>
     <ElAlert v-if="error" :title="error" type="error" :closable="false" show-icon />
     <div :class="{ grid: special, two: special }">
-      <section :id="special ? undefined : 'interviewSetup'" class="panel surface">
-        <h2>训练配置</h2>
-        <div class="field">
-          <label for="training-role">面试岗位</label>
-          <ElSelect id="training-role" v-model="roleId" :disabled="creating || !roles.length">
-            <ElOption v-for="role in roles" :key="role.id" :label="role.name" :value="role.id" />
-          </ElSelect>
+      <section :id="special ? undefined : 'interviewSetup'" class="panel surface" :class="{ 'training-setup': !special }">
+        <div class="setup-main">
+          <h2>训练配置</h2>
+          <div class="field">
+            <label for="training-role">面试岗位</label>
+            <ElSelect id="training-role" v-model="roleId" :disabled="creating || !roles.length">
+              <ElOption v-for="role in roles" :key="role.id" :label="role.name" :value="role.id" />
+            </ElSelect>
+          </div>
+          <template v-if="special">
+            <div class="field">
+              <label for="training-filter">专项类别</label>
+              <ElSelect id="training-filter" v-model="filter" :disabled="loading || creating"
+                @change="filterValue = (filter === 'topic' ? specialties.topics : specialties.types)[0] || ''">
+                <ElOption label="按知识点" value="topic" />
+                <ElOption label="按难度" value="type" />
+              </ElSelect>
+            </div>
+            <div class="field">
+              <label for="training-filter-value">{{ filter === 'topic' ? '知识点' : '难度' }}</label>
+              <ElSelect id="training-filter-value" v-model="filterValue" :disabled="loading || creating">
+                <ElOption v-for="value in (filter === 'topic' ? specialties.topics : specialties.types)"
+                  :key="value" :label="value" :value="value" />
+              </ElSelect>
+            </div>
+          </template>
         </div>
-        <template v-if="special">
-          <div class="field">
-            <label for="training-filter">专项类别</label>
-            <ElSelect id="training-filter" v-model="filter" :disabled="loading || creating"
-              @change="filterValue = (filter === 'topic' ? specialties.topics : specialties.types)[0] || ''">
-              <ElOption label="按知识点" value="topic" />
-              <ElOption label="按难度" value="type" />
-            </ElSelect>
-          </div>
-          <div class="field">
-            <label for="training-filter-value">{{ filter === 'topic' ? '知识点' : '难度' }}</label>
-            <ElSelect id="training-filter-value" v-model="filterValue" :disabled="loading || creating">
-              <ElOption v-for="value in (filter === 'topic' ? specialties.topics : specialties.types)"
-                :key="value" :label="value" :value="value" />
-            </ElSelect>
-          </div>
-        </template>
+        <aside v-if="!special" class="setup-aside" aria-label="当前训练概况">
+          <div class="setup-stat num">{{ filteredCandidates.length }}<span>道可选题目</span></div>
+          <p class="fine-print">自选岗位和题目，用文字或语音作答，提交后查看逐题反馈与改进建议。</p>
+          <p class="setup-hint"><span class="setup-hint__dot" aria-hidden="true" />每次最多选择 <b>10</b> 道题</p>
+        </aside>
       </section>
       <section v-if="special" class="panel surface">
         <h2>薄弱点与推荐</h2>
@@ -213,19 +258,38 @@ async function start(strategy) {
     </details>
 
     <section class="panel surface">
-      <h2>{{ special ? '可练题组' : '岗位题目' }}</h2>
+      <div class="row-heading">
+        <h2>{{ special ? '可练题组' : '岗位题目' }}</h2>
+        <span v-if="selected.length" class="tag green num">已选 {{ selected.length }} / 10</span>
+      </div>
+      <div v-if="candidates.length" class="question-toolbar">
+        <template v-if="!special">
+          <ElSelect v-model="topicFilter" class="toolbar-select" placeholder="全部知识点" clearable :disabled="loading || creating">
+            <ElOption v-for="value in topicOptions" :key="value" :label="value" :value="value" />
+          </ElSelect>
+          <ElSelect v-model="typeFilter" class="toolbar-select toolbar-select--short" placeholder="全部难度" clearable :disabled="loading || creating">
+            <ElOption v-for="value in typeOptions" :key="value" :label="typeLabel(value)" :value="value" />
+          </ElSelect>
+        </template>
+        <ElInput v-model="search" class="toolbar-search" placeholder="搜索题目关键词" clearable :disabled="loading || creating" />
+        <ElButton v-if="selected.length" text type="danger" :disabled="creating" @click="clearSelected">清空已选</ElButton>
+      </div>
       <p v-if="loading">正在加载题目…</p>
-      <p v-else-if="!candidates.length">当前条件下没有可用题目。</p>
-      <div v-for="q in candidates" :key="q.id" class="question-row">
+      <p v-else-if="!filteredCandidates.length">当前条件下没有可用题目。</p>
+      <div v-for="q in visibleCandidates" :key="q.id" class="question-row">
         <ElCheckbox :model-value="selected.includes(q.id)" :disabled="creating" @change="toggle(q.id, $event)">
           {{ q.title }}
         </ElCheckbox>
-        <div class="tags"><span class="tag">{{ q.topic }}</span><span class="tag green">{{ q.type }}</span></div>
-        <p>{{ q.prompt }}</p>
+        <div class="tags"><span class="tag">{{ q.topic }}</span><span class="tag green">{{ typeLabel(q.type) }}</span></div>
+        <p class="question-prompt" :class="{ open: expandedPrompts.includes(q.id) }" :title="expandedPrompts.includes(q.id) ? '点击收起题干' : '点击展开题干'" @click="togglePrompt(q.id)">{{ q.prompt }}</p>
       </div>
+      <p v-if="hiddenCount > 0" class="fine-print">
+        还有 {{ hiddenCount }} 道题未显示。
+        <ElButton text type="primary" size="small" @click="showAll = !showAll">{{ showAll ? '收起' : '显示全部 ' + filteredCandidates.length + ' 题' }}</ElButton>
+      </p>
       <div class="actions">
         <ElButton type="success" :loading="creating"
-          :disabled="loading || !candidates.length || (!special && !selected.length)" @click="start()">
+          :disabled="loading || !filteredCandidates.length || (!special && !selected.length)" @click="start()">
           {{ selected.length ? '开始训练（' + selected.length + ' 题）' : '开始训练' }}
         </ElButton>
         <small v-if="special && candidates.length && !selected.length">默认练习当前题组，最多 10 题。</small>
