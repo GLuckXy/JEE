@@ -47,7 +47,7 @@ public final class TestLaunchEnvironment implements EnvironmentPostProcessor, Or
         settings.put("spring.sql.init.schema-locations", String.join(",",
                 "classpath:schema-h2.sql", "classpath:migrations/004_content.sql",
                 "classpath:migrations/005_training_voice.sql", "classpath:migrations/006_formal.sql",
-                "classpath:migrations/007_report.sql"));
+                "classpath:migrations/007_report.sql", "classpath:migrations/008_operation_log.sql"));
         settings.put("spring.sql.init.data-locations", "optional:classpath:/demo/data.sql");
         settings.put("app.jwt-secret", randomSecret());
         settings.put("training.speech.provider", "none");

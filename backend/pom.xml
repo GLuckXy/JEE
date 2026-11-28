@@ -26,7 +26,7 @@
     <resources>
       <resource><directory>src/main/resources</directory></resource>
       <resource><directory>db/mysql</directory><targetPath>migrations</targetPath><includes>
-        <include>004_content.sql</include><include>005_training_voice.sql</include><include>006_formal.sql</include><include>007_report.sql</include>
+        <include>004_content.sql</include><include>005_training_voice.sql</include><include>006_formal.sql</include><include>007_report.sql</include><include>008_operation_log.sql</include>
       </includes></resource>
     </resources>
     <plugins>

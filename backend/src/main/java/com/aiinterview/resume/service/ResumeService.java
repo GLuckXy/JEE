@@ -37,12 +37,13 @@ public class ResumeService {
     private final PrivateFileStore storage;
     private final ResumeParser parser;
     private final JsonCodec json;
+    private final com.aiinterview.logging.service.OperationLogService logs;
     private final TransactionTemplate tx;
     public ResumeService(ResumeMapper resumes, FileObjectMapper files, ResumeVersionMapper versions,
             ResumeProjectMapper projects,UserAccessService access,PrivateFileStore storage,ResumeParser parser,
-            JsonCodec json,org.springframework.transaction.PlatformTransactionManager manager) {
+            JsonCodec json,com.aiinterview.logging.service.OperationLogService logs,org.springframework.transaction.PlatformTransactionManager manager) {
         this.resumes=resumes; this.files=files; this.versions=versions; this.projects=projects; this.access=access;
-        this.storage=storage; this.parser=parser; this.json=json; this.tx=new TransactionTemplate(manager);
+        this.storage=storage; this.parser=parser; this.json=json; this.logs=logs; this.tx=new TransactionTemplate(manager);
     }
     public ResumeViews.Detail upload(MultipartFile upload) {
         String owner=access.requireStudent().id(); var valid=storage.validate(upload);
@@ -65,6 +66,7 @@ public class ResumeService {
             throw new BusinessException(HttpStatus.SERVICE_UNAVAILABLE,"FILE_STORAGE_FAILED","文件保存失败，已记录补偿状态，请重新上传");
         }
         parse(r.id,owner);
+        logs.record(owner,"RESUME_UPLOAD",r.id,null);
         return detail(r.id);
     }
     public PageResult<ResumeViews.Summary> list(int page,int size) {
@@ -90,6 +92,7 @@ public class ResumeService {
             throw BusinessException.conflict("RESUME_BUSY","文件写入或解析尚未结束，请稍后删除");
         resumes.update(null,new UpdateWrapper<Resume>().eq("id",id).eq("user_id",r.userId).isNull("deleted_at")
                 .set("deleted_at",Values.now()).set("revision",r.revision+1).set("updated_at",Values.now()));
+        logs.record(r.userId,"RESUME_DELETE",id,null);
     }
     @Transactional
     public ResumeViews.Detail saveDraft(String id,ResumeRequests.Draft request) {
@@ -115,6 +118,7 @@ public class ResumeService {
         resumes.update(null,new UpdateWrapper<Resume>().eq("id",id).eq("user_id",r.userId)
                 .set("confirm_status","CONFIRMED").set("version",v.version).set("revision",r.revision+1)
                 .set("confirmed_at",v.confirmedAt).set("updated_at",Values.now()));
+        logs.record(r.userId,"RESUME_CONFIRM",id,"version="+v.version);
         return detail(id);
     }
     public ResumeViews.Detail retry(String id) { String owner=access.requireStudent().id(); parse(id,owner); return detail(id); }

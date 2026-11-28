@@ -56,7 +56,7 @@ pwsh -NoProfile -File scripts/start-local.ps1 -Product
 需要 JDK 21 或更新版本、Maven 3.9、MySQL 8.0.16 或更新版本。建议团队统一使用 JDK 21 LTS。
 
 1. 由数据库负责人创建空数据库及独立应用账号。库名通过 JDBC URL 指定，默认示例为 `ai_interview`。
-2. **获得数据库负责人确认后**，空库按顺序执行 `backend/db/mysql/001`–`007`。已有用户与简历数据的库先确认 `001`–`003` 已部署，再执行尚未应用的迁移。MySQL 模式启动时跳过迁移和教学样例初始化。
+2. **获得数据库负责人确认后**，空库按顺序执行 `backend/db/mysql/001`–`008`。已有用户与简历数据的库先确认 `001`–`003` 已部署，再执行尚未应用的迁移。MySQL 模式启动时跳过迁移和教学样例初始化。
 3. 将 `backend/config/local/application.example.yml` 复制为同目录的 `application.yml` 并填写凭据。也可以通过运行进程环境提供以下配置。
 
 | 环境变量 | 含义 |
@@ -86,7 +86,7 @@ pwsh -NoProfile -File scripts/start-local.ps1
 ```
 
 配置脚本交互读取本机 MySQL `root` 密码，在 `127.0.0.1:3306` 创建
-`ai_interview` 数据库和同名独立应用账号，依次执行 `001`–`007`，并检查 21 张应用表与基础校验约束。
+`ai_interview` 数据库和同名独立应用账号，依次执行 `001`–`008`，并检查 22 张应用表与基础校验约束。
 应用账号仅拥有该库的 SELECT、INSERT、UPDATE、DELETE 权限。检测到已有同名数据库、账号或本机凭证时会停止，不覆盖现有对象。
 
 配置脚本将生成的应用密码和 JWT 签名材料写到 Git 忽略的 `backend/config/local/application.yml`。配置中途失败时先核对已创建的数据库对象和本机配置。
@@ -100,7 +100,7 @@ pwsh -NoProfile -File backend/scripts/upgrade-existing-database.ps1
 pwsh -NoProfile -File backend/scripts/upgrade-existing-database.ps1 -Apply
 ```
 
-升级脚本以本机 MySQL 管理员凭据核对基础表、排序规则和 `003`，仅在 `004`–`007` 对应表全部不存在时新增 14 张表。应用前在 Git 忽略的 `backend/var/migration-backups/` 保存基础表**结构**快照。若检测到部分表已存在，先人工核对。也可加 `-PasswordDialog` 使用本机窗口输入密码。
+升级脚本以本机 MySQL 管理员凭据核对基础表、排序规则和 `003`，仅在 `004`–`008` 对应表全部不存在时新增 15 张表。应用前在 Git 忽略的 `backend/var/migration-backups/` 保存基础表**结构**快照。若检测到部分表已存在，先人工核对。也可加 `-PasswordDialog` 使用本机窗口输入密码。
 
 ### IDEA 运行与调试
 

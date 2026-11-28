@@ -30,10 +30,12 @@ public class TrainingService {
     private final VoiceService voice;
     private final long evaluationTimeout;
     private final ApplicationEventPublisher events;
+    private final com.aiinterview.logging.service.OperationLogService logs;
 
     TrainingService(SessionMapper sessions, AnswerMapper answers, QuestionBank bank, QuestionSelection selection,
                     ObjectMapper json, VoiceService voice,
-                    @Value("${training.evaluation-timeout-ms}") long evaluationTimeout, ApplicationEventPublisher events) {
+                    @Value("${training.evaluation-timeout-ms}") long evaluationTimeout, ApplicationEventPublisher events,
+                    com.aiinterview.logging.service.OperationLogService logs) {
         this.sessions = sessions;
         this.answers = answers;
         this.bank = bank;
@@ -42,6 +44,7 @@ public class TrainingService {
         this.voice = voice;
         this.evaluationTimeout = Math.max(1, evaluationTimeout);
         this.events = events;
+        this.logs = logs;
     }
 
     @Transactional
@@ -74,6 +77,7 @@ public class TrainingService {
         session.draft = "";
         session.createdAt = now();
         sessions.insert(session);
+        logs.record(owner, "TRAINING_CREATE", session.id, session.mode);
         return view(session);
     }
 
